@@ -1,0 +1,4 @@
+HF_PROFILE_ID=reorproject
+HF_SPACE_NAME=reorproject/reor
+HF_SDK=docker
+HF_DEPLOY_ENABLED=True

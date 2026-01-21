@@ -1,0 +1,21 @@
+**Project Description:**
+
+- **Vision**: Deploy the backend of the reor project to Hugging Face Spaces and expose its functionalities via APIs, enabling seamless integration with AI capabilities through an OpenAI-compatible endpoint while maintaining secure and modular architecture.
+
+- **Concrete Goals**:
+  - Deploy only the backend component of `https://github.com/reorproject/reor.git` on Hugging Face Spaces.
+  - Expose all backend functionalities through well-defined API endpoints.
+  - Integrate AI features using the OpenAI-compatible endpoint `https://api.helmholtz-blablador.fz-juelich.de/v1`.
+  - Utilize the model alias `large` and authenticate using the `BLABLADOR_API_KEY` environment variable.
+  - Implement container logging to indicate when required API tokens are not set.
+
+- **Future Use Cases**:
+  - Enable third-party applications to leverage reor’s backend logic and AI-enhanced features via API calls.
+  - Facilitate scalable, GPU-accelerated inference using Hugging Face’s infrastructure.
+  - Support modular AI backend services that can be integrated into larger ecosystems or frontends.
+
+- **Potential Integrations**:
+  - Frontend applications consuming the exposed APIs for dynamic user interfaces.
+  - Other AI/ML platforms via the OpenAI-compatible API standard.
+  - CI/CD pipelines for automated deployment and testing on Hugging Face Spaces.
+  - Monitoring and logging tools to track API usage and token availability.

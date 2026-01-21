@@ -1,0 +1,3 @@
+- **/api/health** – Health check endpoint to verify backend is running and responding.
+- **/api/ai/inference** – Endpoint to trigger AI inference using the OpenAI-compatible endpoint at `https://api.helmholtz-blablador.fz-juelich.de/v1` with model alias `large` and authentication via `BLABLADOR_API_KEY`.
+- **/api/logs/check** – Internal endpoint or startup logic to log warnings if `BLABLADOR_API_KEY` is not set in environment variables.

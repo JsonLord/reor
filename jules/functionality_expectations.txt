@@ -1,0 +1,7 @@
+- Deploy the backend of the reor project (https://github.com/reorproject/reor.git) to Hugging Face Spaces.
+- Expose backend functionalities via APIs (no frontend).
+- Integrate AI functionality using an OpenAI-compatible endpoint: `https://api.helmholtz-blablador.fz-juelich.de/v1`.
+- Use model alias `large` and authenticate with environment variable `BLABLADOR_API_KEY`.
+- Log a warning in container logs if `BLABLADOR_API_KEY` is not set.
+- Focus solely on backend deployment; no frontend or UI modifications.
+- Ensure compatibility with Hugging Face Spaces (e.g., Docker setup, port exposure, environment variable handling).
