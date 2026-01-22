@@ -1,5 +1,4 @@
-HF_PROFILE_ID=harvesthealth
-HF_SPACE_NAME=**Hugging Face Space Name:**
-`harvesthealth-magnetic-ui`
+HF_PROFILE_ID=**huggingface**
+HF_SPACE_NAME=**HF_SPACE**: `harvesthealth-magnetic-ui`
 HF_SDK=docker
 HF_DEPLOY_ENABLED=True

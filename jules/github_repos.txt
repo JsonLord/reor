@@ -1,9 +1,24 @@
-```markdown
-### **GitHub Repos**
-- **GH_OWNER**: `reorproject` (original) → **Fork and adapt**.
-- **GH_REPO**: `harvesthealth/reor-huggingface`
-  - Contains:
-    - Dockerfile + `proxy.py`.
-    - Adapted `llm-service` (BLABLADOR integration).
-    - Hugging Face Space deployment instructions.
+```json
+[
+  {
+    "GH_OWNER": "reorproject",
+    "GH_REPO": "reor"
+  },
+  {
+    "GH_OWNER": "reorproject",
+    "GH_REPO": "reor-hf-deployment"
+  },
+  {
+    "GH_OWNER": "ollama",
+    "GH_REPO": "ollama"
+  },
+  {
+    "GH_OWNER": "xenova",
+    "GH_REPO": "transformers.js"
+  },
+  {
+    "GH_OWNER": "lancedb",
+    "GH_REPO": "lancedb"
+  }
+]
 ```

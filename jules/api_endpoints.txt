@@ -1,17 +1,41 @@
-Here’s the extracted list of **API endpoints** from the provided context:
-
-| Endpoint       | Method | Description                          | Auth Required |
-|----------------|--------|--------------------------------------|---------------|
-| `/notes`       | GET    | List notes                           | Optional      |
-| `/notes/:id`   | POST   | Create/update note                   | API Key       |
-| `/search`      | GET    | Semantic search query                | Optional      |
-| `/qa`          | POST   | RAG-powered Q&A                       | API Key       |
-| `/related`     | GET    | Retrieve related notes                | Optional      |
-
-**Example Request (for `/qa`):**
-```bash
-curl -X POST "https://harvesthealth-magnetic-ui.hf.space/qa" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"query": "Explain my notes on AI ethics"}'
+```json
+{
+  "api_endpoints": [
+    {
+      "endpoint": "/api/embeddings",
+      "method": "POST",
+      "description": "Generate embeddings for text chunks.",
+      "example_response": {
+        "embeddings": [0.1, -0.2, ...]
+      }
+    },
+    {
+      "endpoint": "/api/query",
+      "method": "POST",
+      "description": "RAG-powered Q&A using BLABLADOR LLM endpoint.",
+      "example_response": {
+        "answer": "..."
+      }
+    },
+    {
+      "endpoint": "/api/search",
+      "method": "GET",
+      "description": "Semantic search query using LanceDB vector database.",
+      "example_response": [
+        {
+          "note_id": "x",
+          "score": 0.9
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/health",
+      "method": "GET",
+      "description": "Check backend status (health check endpoint).",
+      "example_response": {
+        "status": "ok"
+      }
+    }
+  ]
+}
 ```
