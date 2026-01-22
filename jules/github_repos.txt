@@ -1,0 +1,2 @@
+- `JsonLord/reor`
+- `harvesthealth-ai/reor-hf-deployment`

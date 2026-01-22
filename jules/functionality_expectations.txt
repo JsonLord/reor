@@ -1,36 +1,36 @@
-### **Functionality Expectations of the Application Once Deployed**
+### **Functionality Expectations of the Deployed Application**
 
-1. **LLM Endpoint Integration**  
-   - The application must use the OpenAI-compatible LLM endpoint at `https://api.helmholtz-blablador.fz-juelich.de/v1` with model alias `large`.  
-   - The `BLABLADOR_API_KEY` must be securely retrieved from Hugging Face Space environment variables.
+1. **Core LLM Functionality**
+   - Retain the original app’s language generation capabilities (e.g., prompt processing, text completion).
+   - Support OpenAI-compatible parameters (e.g., `prompt`, `temperature`, `max_tokens`).
 
-2. **Backend API Exposure**  
-   - The backend APIs must be exposed externally via the URL `https://harvesthealth-magnetic-ui.hf.space` to allow remote management and interaction.  
-   - A forwarding/proxy system (e.g., Nginx or Caddy) must be implemented to route external API traffic to the backend.
+2. **API-Driven Management**
+   - Expose the following endpoints for external interaction:
+     - **`POST /api/generate`**: Generate text using the Helmholtz BLABLADOR API (requires `BLABLADOR_API_KEY`).
+     - **`GET /api/model`**: Return model metadata (e.g., `alias: large`).
+     - **`GET /api/health`**: Health check endpoint (no auth).
+   - **Authentication**: API endpoints (except health/model) may require API key validation.
 
-3. **UI Interface**  
-   - The frontend interface must be accessible on port `7860` (default for Gradio/Streamlit).  
-   - The UI should retain the original language logic and functionality of the source application.
+3. **Hugging Face Spaces Integration**
+   - **UI Accessibility**: Gradio interface available at:
+     `https://harvesthealth-magnetic-ui.hf.space` (port `7860`).
+   - **API Accessibility**: External APIs accessible via the same domain:
+     `https://harvesthealth-magnetic-ui.hf.space/api/{endpoint}`.
+   - **Reverse Proxy Forwarding**: Hugging Face Spaces handles routing to internal ports (e.g., `7860`).
 
-4. **Deployment Strategy**  
-   - The application must be deployed using Docker on Hugging Face Spaces.  
-   - The deployment should leverage Gradio or Streamlit for the UI, with FastAPI or similar for backend API proxying.
+4. **Security & Environment Handling**
+   - Load `BLABLADOR_API_KEY` securely from Hugging Face Space environment variables.
+   - Validate API keys and rate-limit endpoints to prevent abuse.
 
-5. **Security & Configuration**  
-   - The `BLABLADOR_API_KEY` must be injected securely via Hugging Face Space secrets and not hardcoded.  
-   - The application must handle authentication and authorization for API endpoints as needed.
+5. **OpenAI-Compatible LLM Endpoint**
+   - Replace OpenAI API calls with Helmholtz BLABLADOR API (`api.helmholtz-blablador.fz-juelich.de/v1`).
+   - Use model alias `large` for backend requests.
 
-6. **External Accessibility**  
-   - The deployed app must be reachable from outside the Hugging Face Space environment via the provided URL.  
-   - The `/api` endpoint must be functional and accessible for external clients.
+6. **Deployment Constraints**
+   - **Main Port**: `7860` (Gradio default).
+   - **Docker-Based Deployment**: Adopt Hugging Face Spaces’ Docker template with exposed port `7860`.
+   - **Forwarding System**: Ensure external requests to `/api/*` are routed to the backend.
 
-7. **AI-Centric Features**  
-   - The core AI functionality (e.g., language processing, prompt handling) must be preserved and optimized for the new LLM endpoint.  
-   - The app should support real-time interaction with the LLM via the exposed APIs.
-
-8. **Testing & Validation**  
-   - The application must be tested locally and in the Hugging Face Space environment to confirm:  
-     - Successful LLM calls using the external endpoint.  
-     - Correct loading of environment variables.  
-     - Proper API forwarding and external accessibility.  
-     - UI responsiveness and functionality.
+7. **Future Extensibility**
+   - Support for additional OpenAI-compatible APIs (e.g., Azure OpenAI, local models).
+   - Plugin system for custom LLM backends.

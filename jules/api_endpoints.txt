@@ -1,3 +1,64 @@
-- **`/api` endpoint**: Exposes backend APIs for external management and interaction with the app. Purpose: Enable remote control and integration with the deployed application via HTTP requests.
-- **`/v1/chat/completions` (proxied)**: Forwarded to `https://api.helmholtz-blablador.fz-juelich.de/v1` using the `BLABLADOR_API_KEY` from environment. Purpose: Serve AI-generated responses using the OpenAI-compatible LLM endpoint.
-- **Port 7860**: Default Gradio interface port. Purpose: Host the frontend UI accessible at `https://harvesthealth-magnetic-ui.hf.space` for user interaction.
+```json
+[
+  {
+    "method": "POST",
+    "endpoint": "/api/generate",
+    "description": "Generate text using the Helmholtz BLABLADOR API (OpenAI-compatible endpoint).",
+    "auth_required": "Yes",
+    "parameters": {
+      "prompt": "Required string: Input text prompt.",
+      "max_tokens": "Optional int: Maximum tokens to generate.",
+      "temperature": "Optional float: Controls randomness (0.0–1.0).",
+      "model": "Fixed string: 'large' (alias for BLABLADOR's large model)."
+    },
+    "example_request": {
+      "url": "https://harvesthealth-magnetic-ui.hf.space/api/generate",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "prompt": "Hello, how are you?",
+        "max_tokens": 50
+      }
+    }
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/model",
+    "description": "Retrieve model metadata (e.g., alias, provider details).",
+    "auth_required": "No",
+    "response_example": {
+      "model_alias": "large",
+      "provider": "helmholtz-blablador",
+      "max_tokens": 4096,
+      "status": "available"
+    }
+  },
+  {
+    "method": "GET",
+    "endpoint": "/api/health",
+    "description": "Health check for backend services (BLABLADOR API and app status).",
+    "auth_required": "No",
+    "response_example": {
+      "status": "healthy",
+      "api_connection": "active",
+      "timestamp": "2023-11-15T12:00:00Z"
+    }
+  },
+  {
+    "method": "GET",
+    "endpoint": "/",
+    "description": "Gradio UI interface (main app interface, port 7860).",
+    "auth_required": "No",
+    "notes": "Exposes the original language logic of `reor.git` (no direct API access)."
+  },
+  {
+    "method": "POST",
+    "endpoint": "/v1/completions",
+    "description": "Legacy OpenAI-compatible endpoint (alias for BLABLADOR API).",
+    "auth_required": "Yes",
+    "notes": "Internal use only; mirrors Helmholtz BLABLADOR's `/v1/completions` for backward compatibility."
+  }
+]
+```

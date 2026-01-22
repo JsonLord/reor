@@ -1,140 +1,120 @@
-1. Estimation of Project Scope from 1-10 and with a presentation of the core parts  
-Project scope: 8/10  
-Core parts:  
-- Backend logic adaptation to use OpenAI-compatible LLM endpoint at `https://api.helmholtz-blablador.fz-juelich.de/v1` with model `alias-large`  
-- Secure retrieval of `BLABLADOR_API_KEY` from Hugging Face Space environment variables  
-- Deployment on Hugging Face Space with exposed API endpoints for external connectivity  
-- Implementation of a forwarding system to expose backend APIs externally via `https://harvesthealth-magnetic-ui.hf.space`  
-- Preservation of original app language logic while replacing LLM backend  
-- Use of Docker-based deployment with Gradio (preferred) or Streamlit frontend and FastAPI/Nginx for API exposure on port 7860  
+### **1. Estimation of Project Scope (1-10)**
+**Score: 8/10**
+**Core parts**:
+1. **API Integration** – Replace OpenAI calls with Helmholtz BLABLADOR API (`/v1/completions`) using `BLABLADOR_API_KEY` from Hugging Face environment variables.
+2. **Gradio-to-HF-Spaces Adaptation** – Modify existing Gradio app for Docker deployment on Hugging Face with port `7860` exposed.
+3. **Reverse Proxy & API Forwarding** – Ensure external API access via `harvesthealth-magnetic-ui.hf.space` (e.g., `/api/generate`).
+4. **Security** – Validate API keys, rate-limit endpoints, and ensure HTTPS.
+5. **Testing & Monitoring** – Validate full pipeline (input → Helmholtz API → output) and log deployment issues.
 
-2. Project Description w/ vision for the project, concrete goals what it should be capable of, and future use cases, and future integrations into other projects  
-Vision: Deploy a functional, AI-powered application on Hugging Face Spaces that maintains its core language interface while integrating securely with an external OpenAI-compatible LLM service. The app should be remotely manageable via exposed API endpoints.  
-Concrete goals:  
-- App must route all LLM queries through `helmholtz-blablador.fz-juelich.de/v1` using `alias-large` model  
-- `BLABLADOR_API_KEY` must be loaded securely from Hugging Face Space environment  
-- Full backend API functionality must be accessible externally via `https://harvesthealth-magnetic-ui.hf.space/api`  
-- UI must remain functional on port 7860 via Gradio  
-- Application must run in a Docker container deployed on Hugging Face Space  
-Future use cases:  
-- Remote orchestration of the app via API calls from external dashboards or agents  
-- Integration into larger AI workflows (e.g., healthcare NLP pipelines)  
-- Multi-model routing based on input type or user role  
-Future integrations:  
-- Connection to internal HelmHoltz AI governance tools  
-- Logging and monitoring via centralized AI observability platforms  
+---
 
-3. Other Projects or api endpoints that will be integrated into the project to act as part components to the overall project  
-- OpenAI-compatible API endpoint: `https://api.helmholtz-blablador.fz-juelich.de/v1` (used for LLM inference)  
-- Hugging Face Spaces platform (hosting environment with secret management)  
-- Gradio (UI framework with built-in API exposure capability)  
-- FastAPI (for custom backend API routing and proxying if needed)  
-- Nginx or Caddy (for reverse proxying and external API exposure in Docker setup)  
+### **2. Project Description**
+**Vision**:
+Deploy an OpenAI-compatible LLM interface (originally from `reor.git`) on Hugging Face Spaces, using the **Helmholtz BLABLADOR API** as the backend. The app will retain its language logic (e.g., prompt processing, temperature controls) while exposing APIs for external management (e.g., programmatic text generation).
 
-4. A list of components that need to be built and how they interact  
-- **Gradio UI Component**: Serves the user interface on port 7860; sends LLM requests to the backend proxy  
-- **FastAPI Proxy Component**: Receives internal and external API calls; forwards them to the LLM endpoint with proper authentication  
-- **Environment Manager**: Loads `BLABLADOR_API_KEY` from `os.environ` and injects it into API headers  
-- **Docker Container Layer**: Bundles Gradio, FastAPI, and proxy server; exposes port 7860 and `/api` routes  
-- **Reverse Proxy (Nginx/Caddy)**: Forwards external traffic from `https://harvesthealth-magnetic-ui.hf.space` to internal services (port 7860 and `/api`)  
-- **API Exposure Layer**: Ensures all backend functions are reachable via HTTP endpoints for external management  
+**Concrete Goals**:
+1. **Functional**:
+   - Replace all OpenAI API calls in the Gradio app with Helmholtz BLABLADOR API requests (`/v1/completions`).
+   - Securely fetch `BLABLADOR_API_KEY` from Hugging Face Space environment variables.
+   - Expose APIs (e.g., `/api/generate`, `/api/health`) alongside the Gradio UI.
+2. **Compatibility**:
+   - Maintain OpenAI-compatible parameters (e.g., `max_tokens`, `temperature`).
+   - Support Hugging Face Spaces’ Docker deployment constraints (port `7860`).
+3. **Accessibility**:
+   - UI at `https://harvesthealth-magnetic-ui.hf.space` (port `7860`).
+   - APIs accessible via the same domain (e.g., `https://harvesthealth-magnetic-ui.hf.space/api/generate`).
 
-Interaction flow:  
-External request → Hugging Face Space → Nginx/Caddy → routes `/` to Gradio (port 7860), `/api/*` to FastAPI → FastAPI uses `BLABLADOR_API_KEY` to call `helmholtz-blablador.fz-juelich.de/v1` → response returned through chain  
+**Future Use Cases**:
+- **Extensibility**: Add support for other OpenAI-compatible APIs (e.g., Azure OpenAI) via a plugin system.
+- **Scalability**: Deploy multiple instances for load balancing.
+- **Monitoring**: Log API usage and errors for debugging (integrate with Hugging Face Datasets).
 
-4.2. A list of subtasks per components  
-**Gradio UI Component**  
-- Subtask: Clone or recreate UI logic from original (assumed) reor app  
-- Subtask: Replace local LLM calls with HTTP requests to internal FastAPI endpoint (e.g., `http://localhost:8000/llm`)  
-- Subtask: Ensure prompt formatting and language logic are preserved  
-- Subtask: Confirm Gradio generates `/api` endpoints for all interface functions  
+**Future Integrations**:
+1. **OpenAI-Compatible APIs**: Backend swappability (e.g., local models via `vLLM`).
+2. **Hugging Face Hub**: Model versioning and updates.
+3. **Authentication**: Add API key authentication for `/api/generate`.
 
-**FastAPI Proxy Component**  
-- Subtask: Set up FastAPI app with `/v1/chat/completions` and other required LLM endpoints  
-- Subtask: Implement secure header injection using `os.environ["BLABLADOR_API_KEY"]`  
-- Subtask: Validate incoming request structure and forward to `https://api.helmholtz-blablador.fz-juelich.de/v1`  
-- Subtask: Return responses with correct status codes and JSON structure  
+---
 
-**Environment Manager**  
-- Subtask: Implement secure environment variable loading for `BLABLADOR_API_KEY`  
-- Subtask: Add fallback or error handling if key is missing  
-- Subtask: Ensure key is never logged or exposed in responses  
+### **3. Other Projects/API Endpoints for Integration**
+| **Component**               | **Endpoint/API**                          | **Type**               | **Integration Notes**                                                                 |
+|-----------------------------|-------------------------------------------|------------------------|--------------------------------------------------------------------------------------|
+| Helmholtz BLABLADOR API     | `https://api.helmholtz-blablador.fz-juelich.de/v1/completions` | OpenAI-compatible LLM  | Replace all OpenAI API calls. Model alias: `large`. Auth: Bearer token (`BLABLADOR_API_KEY`). |
+| Hugging Face Spaces         | `https://harvesthealth-magnetic-ui.hf.space` | Deployment Platform    | Docker-based Gradio app. Reverse proxy for API forwarding.                          |
+| Gradio                     | Port `7860` (default)                     | UI Framework           | Existing app logic preserved. Environment variables for `BLABLADOR_API_KEY`.        |
 
-**Docker Container Layer**  
-- Subtask: Create `Dockerfile` installing Python, Gradio, FastAPI, Uvicorn, and Nginx/Caddy  
-- Subtask: Define startup script to launch Nginx, Uvicorn (FastAPI), and Gradio  
-- Subtask: Expose port 7860 and configure `/api` path routing  
-- Subtask: Set working directory and copy app files  
+---
 
-**Reverse Proxy (Nginx/Caddy)**  
-- Subtask: Configure Nginx/Caddy to serve Gradio on `/` and FastAPI on `/api`  
-- Subtask: Forward `https://harvesthealth-magnetic-ui.hf.space` to internal services  
-- Subtask: Ensure WebSocket support for Gradio streaming  
+### **4. Components & Subtasks**
+#### **4.1 Components to Build**
+1. **API Integration Layer**
+   - Replaces OpenAI calls with Helmholtz BLABLADOR API requests.
+   - Handles authentication via `BLABLADOR_API_KEY`.
+   - *Interaction*: Called by Gradio frontend and exposed API endpoints.
 
-**API Exposure Layer**  
-- Subtask: Document all available API endpoints (from Gradio and FastAPI)  
-- Subtask: Ensure CORS is configured to allow external domains if needed  
-- Subtask: Implement health check endpoint `/health`  
+2. **Gradio App Adapter**
+   - Modifies `reor.git` to load `BLABLADOR_API_KEY` from environment variables.
+   - Ensures compatibility with Hugging Face Spaces Docker template.
+   - *Interaction*: Frontend UI + API layer.
 
-4.3. A list of tests to be run per component to check it's working, without writing code, but describing the functionality that should be working and define a success  
-**Gradio UI Component**  
-- Test: Load UI at `https://harvesthealth-magnetic-ui.hf.space`  
-- Success: Page renders, input fields visible, chat works when submitted  
-- Test: Submit test prompt "Hello, how are you?"  
-- Success: Response is received via streaming or full message from LLM backend  
+3. **Reverse Proxy & API Forwarding**
+   - Configures Hugging Face Spaces to expose internal APIs (e.g., `/api/generate`) via the Space URL.
+   - *Interaction*: Routes external requests to Gradio’s internal endpoints.
 
-**FastAPI Proxy Component**  
-- Test: Send POST request to `https://harvesthealth-magnetic-ui.hf.space/api/llm` with chat payload  
-- Success: Returns 200 OK and valid LLM response from `helmholtz-blablador`  
-- Test: Send malformed request  
-- Success: Returns 400 Bad Request with error message  
+4. **Security Middleware**
+   - Validates `BLABLADOR_API_KEY` before BLABLADOR API calls.
+   - Rate-limits `/api/generate` to avoid abuse.
+   - *Interaction*: Intercepts API requests before processing.
 
-**Environment Manager**  
-- Test: Deploy without `BLABLADOR_API_KEY` set  
-- Success: App fails to start or logs clear error, does not expose key  
-- Test: Deploy with correct key  
-- Success: LLM requests succeed, key used in headers without logging  
+5. **Deployment Scripts**
+   - Updates `Dockerfile` for Hugging Face Spaces (port `7860` exposed).
+   - Sets up CI/CD (e.g., automated testing on push).
+   - *Interaction*: Deploys the app to `harvesthealth-magnetic-ui.hf.space`.
 
-**Docker Container Layer**  
-- Test: Run `docker-compose up` locally  
-- Success: Services start, port 7860 accessible, no crashes  
-- Test: Check logs for startup completion  
-- Success: Logs show Gradio running on 7860, FastAPI on 8000, Nginx active  
+---
 
-**Reverse Proxy (Nginx/Caddy)**  
-- Test: Access `https://harvesthealth-magnetic-ui.hf.space`  
-- Success: Serves Gradio UI  
-- Test: Access `https://harvesthealth-magnetic-ui.hf.space/api/health`  
-- Success: Returns 200 from FastAPI  
+#### **4.2 Subtasks per Component**
+| **Component**               | **Subtasks**                                                                                                                                                                                                 |
+|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **API Integration Layer**   |                                                                                                                                                                                                      |
+|                             | - Audit `reor.git` for OpenAI API calls (e.g., `openai.Completion.create`).                                                                                                                             |
+|                             | - Replace with `requests.post()` to Helmholtz BLABLADOR API (`/v1/completions`) using `BLABLADOR_API_KEY`.                                                                                               |
+|                             | - Add error handling for API failures (e.g., rate limits, invalid keys).                                                                                                                                 |
+|                             | - Mock BLABLADOR API responses locally for testing.                                                                                                                                                           |
+|                             | - Protocol: Use `os.environ.get("BLABLADOR_API_KEY")` with validation.                                                                                                                                  |
+| **Gradio App Adapter**      |                                                                                                                                                                                                      |
+|                             | - Fork `JsonLord/reor` → `harvesthealth-ai/reor`.                                                                                                                                                           |
+|                             | - Modify `app.py` to load `BLABLADOR_API_KEY` from environment variables.                                                                                                                               |
+|                             | - Test locally with a dummy key (`export BLABLADOR_API_KEY="test123"`).                                                                                                                                     |
+|                             | - Update `requirements.txt` if new dependencies (e.g., `requests`) are needed.                                                                                                                               |
+| **Reverse Proxy**           |                                                                                                                                                                                                      |
+|                             | - Configure Hugging Face Spaces to proxy `/api/*` to Gradio’s internal endpoints (e.g., `http://localhost:7860/api/generate`).                                                                         |
+|                             | - Test forwarding with `curl -X POST "https://harvesthealth-magnetic-ui.hf.space/api/generate"`.                                                                                                           |
+|                             | - Protocol: Use Hugging Face’s built-in reverse proxy or Nginx in Docker.                                                                                                                                |
+| **Security Middleware**     |                                                                                                                                                                                                      |
+|                             | - Add API key validation for `/api/generate` (e.g., check `Authorization: Bearer` header).                                                                                                               |
+|                             | - Implement rate limiting (e.g., 10 requests/minute).                                                                                                                                                          |
+|                             | - Use HTTPS for all external communications.                                                                                                                                                                   |
+| **Deployment Scripts**      |                                                                                                                                                                                                      |
+|                             | - Update `Dockerfile` to expose port `7860`.                                                                                                                                                                |
+|                             | - Add `.hf` secrets for `BLABLADOR_API_KEY` (Hugging Face Space environment).                                                                                                                              |
+|                             | - Create a CI script (e.g., GitHub Actions) to test locally before deploying.                                                                                                                            |
+|                             | - Fork repository to `harvesthealth-ai` with updated `README.md` (includes setup instructions).                                                                                                          |
 
-**API Exposure Layer**  
-- Test: Call `/api/predict` (Gradio) and `/api/llm` (FastAPI) externally  
-- Success: Both return correct responses  
-- Test: Use curl or Postman to simulate external management  
-- Success: App responds to API commands without UI interaction  
+---
+**Note on External Code**:
+- **Helmholtz BLABLADOR API**: Full integration is possible (no need to mirror code). Use their `/v1/completions` endpoint directly.
+- **Gradio**: Existing code can be adapted without mirroring (only environment variable and API replacement needed).
 
-5. Task of Full Pipeline Test: A test description for the full interaction from input to output, without writing code, but determining hw success would look like, and write some mock-up input data to use for testing  
-Task: Simulate end-to-end user and API interaction  
-Mock-up input data:  
-```json
-{
-  "messages": [
-    {"role": "user", "content": "Explain quantum computing in simple terms."}
-  ],
-  "model": "alias-large"
-}
-```  
-Test flow:  
-1. User submits message via Gradio UI  
-2. Frontend sends request to backend (FastAPI)  
-3. FastAPI adds `Authorization: Bearer <BLABLADOR_API_KEY>` and forwards to `helmholtz-blablador.fz-juelich.de/v1`  
-4. Response is streamed back to Gradio UI  
-5. Separately, external API call sent to `/api/llm` with same payload  
-6. Same response received via API  
-Success criteria:  
-- UI returns LLM response correctly  
-- API returns same response with 200 status  
-- No authentication leaks or errors in logs  
-- Full round-trip time under 10 seconds  
+---
 
-6. Task of API: Based on API logs documentation, add api endpoints for all funct
+#### **4.3 Tests per Component**
+| **Component**               | **Test Description**                                                                                                                                                                                                 | **Success Criteria**                                                                                                                                                                                                 |
+|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **API Integration Layer**   |                                                                                                                                                                                                                       |                                                                                                                                                                                                                       |
+|                             | 1. **API Call Test**: Send a mock prompt to BLABLADOR API with `BLABLADOR_API_KEY`.                                                                                                                                    | Returns valid completion text with `text` and `usage` fields.                                                                                                                                                         |
+|                             | 2. **Key Validation Test**: Pass an invalid/missing `BLABLADOR_API_KEY`.                                                                                                                                       | Returns `401 Unauthorized` or clear error message.                                                                                                                                                               |
+|                             | 3. **Parameter Test**: Test OpenAI-compatible params (e.g., `max_tokens=50`, `temperature=0.7`).                                                                                                               | BLABLADOR API respect params and returns expected output.                                                                                                                                                           |
+| **Gradio App Adapter**      |                                                                                                                                                                                                                       |                                                                                                                                                                                                                       |
+|
