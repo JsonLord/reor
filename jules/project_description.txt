@@ -1,21 +1,24 @@
-**Project Description:**
+**Project Description**
 
-- **Vision**: Deploy the backend of the reor project to Hugging Face Spaces and expose its functionalities via APIs, enabling seamless integration with AI capabilities through an OpenAI-compatible endpoint while maintaining secure and modular architecture.
+**Vision**  
+Deploy the **reor** project as a FastAPI-based backend on Hugging Face Spaces, focusing exclusively on the backend with no frontend. The backend will expose AI inference capabilities via API endpoints, with AI settings dynamically configurable through a dedicated `/configure` endpoint. The Helmholtz-Blabladot API will remain the central AI integration, with logging implemented to alert on missing `BLABLADOR_API_KEY`.
 
-- **Concrete Goals**:
-  - Deploy only the backend component of `https://github.com/reorproject/reor.git` on Hugging Face Spaces.
-  - Expose all backend functionalities through well-defined API endpoints.
-  - Integrate AI features using the OpenAI-compatible endpoint `https://api.helmholtz-blablador.fz-juelich.de/v1`.
-  - Utilize the model alias `large` and authenticate using the `BLABLADOR_API_KEY` environment variable.
-  - Implement container logging to indicate when required API tokens are not set.
+**Concrete Goals**  
+1. **Backend-Only Deployment**: Deploy only the backend component using FastAPI on Hugging Face Spaces.  
+2. **Dynamic AI Configuration**: Expose an API endpoint (`/configure`) to update AI settings (e.g., model alias, endpoint URL) from outside the Hugging Face Space.  
+3. **AI Integration Preservation**: Maintain integration with the Helmholtz-Blabladot API (OpenAI-compatible endpoint) for AI inference.  
+4. **Error Logging**: Log an error at startup and during API requests if `BLABLADOR_API_KEY` is not set.  
+5. **API Endpoint Exposure**: Expose inference endpoints (e.g., `/generate`) to allow external AI requests.  
 
-- **Future Use Cases**:
-  - Enable third-party applications to leverage reor’s backend logic and AI-enhanced features via API calls.
-  - Facilitate scalable, GPU-accelerated inference using Hugging Face’s infrastructure.
-  - Support modular AI backend services that can be integrated into larger ecosystems or frontends.
+**Future Use Cases**  
+- **External AI Service Integration**: Allow third-party applications to use the reor backend for AI generation by calling `/generate` with dynamic model settings.  
+- **Configurable AI Workflows**: Enable developers to switch between different AI models or endpoints at runtime via `/configure`.  
+- **Monitoring and Debugging**: Use logs to monitor missing API keys and track inference behavior.  
+- **Hybrid Deployments**: Use the backend as a microservice in larger AI systems, with frontend components developed separately.  
 
-- **Potential Integrations**:
-  - Frontend applications consuming the exposed APIs for dynamic user interfaces.
-  - Other AI/ML platforms via the OpenAI-compatible API standard.
-  - CI/CD pipelines for automated deployment and testing on Hugging Face Spaces.
-  - Monitoring and logging tools to track API usage and token availability.
+**Potential Integrations**  
+- **Hugging Face Spaces Secrets**: Store `BLABLADOR_API_KEY` securely as a Space secret to avoid hardcoding.  
+- **Containerized Deployment**: Use a `Containerfile` to define the FastAPI environment, ensuring compatibility with Hugging Face’s infrastructure.  
+- **API Gateway**: Integrate with external API gateways or serverless platforms (e.g., AWS API Gateway, Google Cloud Endpoints) for scalable access.  
+- **Monitoring Tools**: Integrate with logging services (e.g., Sentry, Datadog) to track errors and performance.  
+- **Frontend Integration**: Future frontend (React/Vite) can be connected via the exposed FastAPI endpoints for a full-stack deployment.

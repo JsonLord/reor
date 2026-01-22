@@ -1,7 +1,11 @@
-- Deploy the backend of the reor project (https://github.com/reorproject/reor.git) to Hugging Face Spaces.
-- Expose backend functionalities via APIs (no frontend).
-- Integrate AI functionality using an OpenAI-compatible endpoint: `https://api.helmholtz-blablador.fz-juelich.de/v1`.
-- Use model alias `large` and authenticate with environment variable `BLABLADOR_API_KEY`.
-- Log a warning in container logs if `BLABLADOR_API_KEY` is not set.
-- Focus solely on backend deployment; no frontend or UI modifications.
-- Ensure compatibility with Hugging Face Spaces (e.g., Docker setup, port exposure, environment variable handling).
+- Deploy only the backend of the reor application on Hugging Face Spaces using FastAPI.
+- Expose the backend via FastAPI endpoints, with no frontend.
+- Preserve AI integration with the Helmholtz-Blabladot API (OpenAI-compatible endpoint).
+- Allow dynamic configuration of AI settings (e.g., model alias, endpoint URL) via a dedicated API endpoint (e.g., `/configure`).
+- Log an error if the `BLABLADOR_API_KEY` environment variable is missing.
+- Ensure AI inference is routed through the Helmholtz-Blabladot API using the dynamically configured settings.
+- Deploy the FastAPI service within a container (using a `Containerfile` or equivalent) compatible with Hugging Face Spaces.
+- Use Hugging Face Space secrets to securely store sensitive data like `BLABLADOR_API_KEY`.
+- Provide endpoints such as `/configure` (POST) to update AI settings and `/generate` (POST) to trigger AI inference.
+- Implement logging for errors and inference activity.
+- Ensure the application runs within Hugging Face Spaces constraints (e.g., no persistent storage, GPU limitations if applicable).

@@ -1,185 +1,183 @@
 # Project Context
 
 ## Project Description
-**Project Description:**
+**Project Description**
 
-- **Vision**: Deploy the backend of the reor project to Hugging Face Spaces and expose its functionalities via APIs, enabling seamless integration with AI capabilities through an OpenAI-compatible endpoint while maintaining secure and modular architecture.
+**Vision**  
+Deploy the **reor** project as a FastAPI-based backend on Hugging Face Spaces, focusing exclusively on the backend with no frontend. The backend will expose AI inference capabilities via API endpoints, with AI settings dynamically configurable through a dedicated `/configure` endpoint. The Helmholtz-Blabladot API will remain the central AI integration, with logging implemented to alert on missing `BLABLADOR_API_KEY`.
 
-- **Concrete Goals**:
-  - Deploy only the backend component of `https://github.com/reorproject/reor.git` on Hugging Face Spaces.
-  - Expose all backend functionalities through well-defined API endpoints.
-  - Integrate AI features using the OpenAI-compatible endpoint `https://api.helmholtz-blablador.fz-juelich.de/v1`.
-  - Utilize the model alias `large` and authenticate using the `BLABLADOR_API_KEY` environment variable.
-  - Implement container logging to indicate when required API tokens are not set.
+**Concrete Goals**  
+1. **Backend-Only Deployment**: Deploy only the backend component using FastAPI on Hugging Face Spaces.  
+2. **Dynamic AI Configuration**: Expose an API endpoint (`/configure`) to update AI settings (e.g., model alias, endpoint URL) from outside the Hugging Face Space.  
+3. **AI Integration Preservation**: Maintain integration with the Helmholtz-Blabladot API (OpenAI-compatible endpoint) for AI inference.  
+4. **Error Logging**: Log an error at startup and during API requests if `BLABLADOR_API_KEY` is not set.  
+5. **API Endpoint Exposure**: Expose inference endpoints (e.g., `/generate`) to allow external AI requests.  
 
-- **Future Use Cases**:
-  - Enable third-party applications to leverage reor’s backend logic and AI-enhanced features via API calls.
-  - Facilitate scalable, GPU-accelerated inference using Hugging Face’s infrastructure.
-  - Support modular AI backend services that can be integrated into larger ecosystems or frontends.
+**Future Use Cases**  
+- **External AI Service Integration**: Allow third-party applications to use the reor backend for AI generation by calling `/generate` with dynamic model settings.  
+- **Configurable AI Workflows**: Enable developers to switch between different AI models or endpoints at runtime via `/configure`.  
+- **Monitoring and Debugging**: Use logs to monitor missing API keys and track inference behavior.  
+- **Hybrid Deployments**: Use the backend as a microservice in larger AI systems, with frontend components developed separately.  
 
-- **Potential Integrations**:
-  - Frontend applications consuming the exposed APIs for dynamic user interfaces.
-  - Other AI/ML platforms via the OpenAI-compatible API standard.
-  - CI/CD pipelines for automated deployment and testing on Hugging Face Spaces.
-  - Monitoring and logging tools to track API usage and token availability.
+**Potential Integrations**  
+- **Hugging Face Spaces Secrets**: Store `BLABLADOR_API_KEY` securely as a Space secret to avoid hardcoding.  
+- **Containerized Deployment**: Use a `Containerfile` to define the FastAPI environment, ensuring compatibility with Hugging Face’s infrastructure.  
+- **API Gateway**: Integrate with external API gateways or serverless platforms (e.g., AWS API Gateway, Google Cloud Endpoints) for scalable access.  
+- **Monitoring Tools**: Integrate with logging services (e.g., Sentry, Datadog) to track errors and performance.  
+- **Frontend Integration**: Future frontend (React/Vite) can be connected via the exposed FastAPI endpoints for a full-stack deployment.
 
 ## Tasks and Tests
 1. Estimation of Project Scope from 1-10 and with a presentation of the core parts  
-   Scope Estimation: 7/10  
-   Core Parts:  
-   - Backend server from reorproject/reor.git (to be deployed without frontend)  
-   - API exposure for all backend functionalities  
-   - Integration with OpenAI-compatible AI endpoint: https://api.helmholtz-blablador.fz-juelich.de/v1  
-   - Use of model alias "large" and environment variable BLABLADOR_API_KEY  
-   - Logging mechanism to indicate if API key is missing  
-   - Deployment on Hugging Face Spaces with containerized execution  
+**Scope: 7/10**  
+The project involves deploying a backend-only version of the `reor` application on Hugging Face Spaces, with FastAPI as the API layer. The core parts include:  
+- Extracting AI logic from frontend files (`defaultLLMs.ts`, `utils.ts`) to build a standalone backend.  
+- Creating FastAPI endpoints for AI configuration (`/configure`) and inference (`/generate`).  
+- Logging errors for missing `BLABLADOR_API_KEY`.  
+- Deploying the backend on Hugging Face Spaces with environment variable handling.  
+The complexity arises from the lack of an existing backend and the need to reverse-engineer AI integration from frontend code.
 
 2. Project Description w/ vision for the project, concrete goals what it should be capable of, and future use cases, and future integrations into other projects  
-   Vision: Deploy the reor backend as a standalone, API-accessible service on Hugging Face Spaces to enable programmatic access to its core functionalities with integrated AI capabilities via a secure, external endpoint.  
-   Concrete Goals:  
-   - Run the reor backend in a container on Hugging Face Spaces  
-   - Expose all backend functions via API endpoints (e.g., FastAPI or Gradio-based)  
-   - Integrate AI inference using the Helmholtz Blablador endpoint with model alias-large  
-   - Securely manage API key via environment variable BLABLADOR_API_KEY  
-   - Log startup-time warnings if BLABLADOR_API_KEY is not set  
-   Future Use Cases:  
-   - Serve as backend for future frontend interfaces or mobile apps  
-   - Enable third-party integrations via API  
-   - Support AI-augmented data processing workflows  
-   Future Integrations:  
-   - Integration with Hugging Face Hub models or datasets  
-   - Chaining with other Spaces via API calls  
-   - Inclusion in larger research or data analysis pipelines  
+**Vision**: Deploy a lightweight, backend-only FastAPI service for the `reor` project on Hugging Face Spaces, enabling external AI configuration and inference via API endpoints.  
+**Concrete Goals**:  
+- Expose `/configure` endpoint to dynamically set AI parameters (model, endpoint).  
+- Expose `/generate` endpoint to trigger AI inference via Helmholtz-Blabladot API.  
+- Log errors if `BLABLADOR_API_KEY` is missing.  
+- Run as a standalone backend without frontend dependencies.  
+**Future Use Cases**:  
+- Integration into other AI workflow tools or dashboards.  
+- Use as a microservice for AI inference in larger systems.  
+**Future Integrations**:  
+- Integration with Hugging Face Inference API for model serving.  
+- Possible extension to support multiple AI providers (e.g., OpenAI, Anthropic) via config.
 
 3. Other Projects or api endpoints that will be integrated into the project to act as part components to the overall project  
-   - OpenAI-compatible API endpoint: https://api.helmholtz-blablador.fz-juelich.de/v1  
-     - Function: AI inference using model alias "large"  
-     - Authentication: Bearer token via BLABLADOR_API_KEY environment variable  
-   - Hugging Face Spaces platform:  
-     - Deployment target with GPU/storage constraints  
-     - Secret management for BLABLADOR_API_KEY  
-     - Logging interface for container output monitoring  
+- **Helmholtz-Blabladot API**: Primary AI inference endpoint (`https://api.helmholtz-blablador.fz-juelich.de/v1`).  
+- **Hugging Face Spaces**: Hosting platform for the FastAPI backend.  
+- **FastAPI**: Framework for building and exposing API endpoints.  
+- **Python Logging**: For error reporting (missing API key).  
 
 4. A list of components that need to be built and how they interact  
-   - Backend Server (reor core): Executes main logic, potentially needs API wrapper  
-   - API Layer: Exposes backend functions via HTTP endpoints (FastAPI or Gradio)  
-   - AI Client Module: Communicates with https://api.helmholtz-blablador.fz-juelich.de/v1  
-   - Environment & Security Handler: Checks for BLABLADOR_API_KEY at startup  
-   - Logging Module: Outputs status and warnings (especially missing token)  
-   - Docker Container: Packages app for Hugging Face Spaces deployment  
-   Interactions:  
-   - API Layer receives requests → routes to Backend Server  
-   - Backend Server uses AI Client Module when AI inference is needed  
-   - AI Client reads BLABLADOR_API_KEY from env, fails gracefully if missing  
-   - Environment & Security Handler checks key at startup → logs warning if absent  
-   - All logs are visible in Hugging Face container logs  
+- **FastAPI Backend**: Main component exposing `/configure`, `/generate`, and `/health` endpoints.  
+- **AI Configuration Manager**: In-memory storage for dynamic AI settings (model, endpoint).  
+- **Helmholtz-Blabladot Client**: Wrapper for calling the external AI API with configured settings.  
+- **Startup Validator**: Checks for `BLABLADOR_API_KEY` at startup.  
+- **Logger**: Handles error logging for missing keys and inference issues.  
+
+**Interactions**:  
+- User → `/configure` → Updates AI config → Used in `/generate` → Calls Helmholtz-Blabladot API → Returns result.  
+- Startup → Validator checks `BLABLADOR_API_KEY` → Logs error if missing.  
 
 4.2. A list of subtasks per components. For new coding this means some architecture protocol for security, functionality, and interaction endpoints to other components  
-   For the integration of external code for a component: The cloning or lookup of the api documentation, then the investigation for integration, looking up build-protocol, interaction possibilities with the other components, and a judgement on whether it can be integrated as it is, or just parts of it, or whether inidivual code should be mirroring the functionality  
-   If the full code shluld serve the purpose, notify the user about it.  
+**FastAPI Backend**:  
+- Build FastAPI app with `uvicorn` server.  
+- Define routes: `/configure` (POST), `/generate` (POST), `/health` (GET).  
+- Use `pydantic` models for request validation.  
+- Secure endpoints: No authentication required (per project scope).  
 
-   - Backend Server:  
-     - Investigate repo structure: identify entry point (main.py/server.py/app.py)  
-     - Determine if existing API framework is used (FastAPI, Flask, etc.)  
-     - If no API layer: wrap core functions in FastAPI app  
-     - If API exists: extend to expose all required endpoints  
-     - Notify: Full backend code from reor.git serves the purpose, but may need API exposure layer  
+**AI Configuration Manager**:  
+- Use global dictionary (`ai_config`) for settings.  
+- Allow dynamic updates via `/configure`.  
+- Validate input (e.g., model must be in allowed list).  
 
-   - API Layer:  
-     - If not present: create FastAPI app with /health, /infer, and relevant endpoints  
-     - Define POST/GET routes matching backend functions  
-     - Ensure CORS is configured for external access  
-     - Return JSON responses with status and data  
+**Helmholtz-Blabladot Client**:  
+- Clone logic from `utils.ts` to Python.  
+- Use `requests` or `httpx` to call external API.  
+- Include `BLABLADOR_API_KEY` in headers.  
+- Handle errors (timeout, 4xx/5xx).  
 
-   - AI Client Module:  
-     - Clone OpenAI-compatible API documentation from https://api.helmholtz-blablador.fz-juelich.de/v1  
-     - Investigate model alias usage and request format (prompt, max_tokens, etc.)  
-     - Implement HTTP client (e.g., using requests or httpx) to send inference requests  
-     - Use environment variable BLABLADOR_API_KEY for Authorization header  
-     - Build protocol: use async if possible, add timeout and retry logic  
-     - Interaction: called by backend when AI inference is needed  
-     - Judgement: individual code should mirror OpenAI client pattern but point to Blablador endpoint  
+**Startup Validator**:  
+- On app startup, check `os.getenv("BLABLADOR_API_KEY")`.  
+- If missing, log error using `logging.error()`.  
 
-   - Environment & Security Handler:  
-     - At application startup, check os.environ.get("BLABLADOR_API_KEY")  
-     - If not present, log clear warning: "BLABLADOR_API_KEY not set in environment"  
-     - Allow app to start but disable AI features or return 503 if key is missing  
+**Logger**:  
+- Use Python `logging` module.  
+- Set log level to `INFO` or `DEBUG`.  
+- Output logs to stdout (for Hugging Face Space visibility).  
 
-   - Logging Module:  
-     - Use Python logging to output to stdout  
-     - Ensure warning about missing key is visible in Hugging Face logs  
-     - Include timestamps and log levels  
+**External Code Integration**:  
+- The AI logic in `defaultLLMs.ts` and `utils.ts` must be mirrored in Python.  
+- No direct API integration possible — must re-implement logic.  
+- Full code should be mirrored for functionality.  
 
-   - Docker Container:  
-     - Check for existing Dockerfile in repo  
-     - If none: create one based on python:3.10-slim or similar  
-     - Install dependencies from requirements.txt or pyproject.toml  
-     - Expose port 7860 (default for HF Spaces)  
-     - Set CMD to run the API server  
-     - Ensure logs are written to stdout for HF monitoring  
+4.3. A list of tests to be run per component to check it's working, without writing code, but describing the functionality that should be working and define a success  
+**FastAPI Backend**:  
+- Test `/health`: Should return `{"status": "OK"}`. Success: 200 status, correct JSON.  
+- Test `/configure`: Send `{"model": "small"}` → Should return `{"status": "updated"}`. Success: Config updated.  
+- Test `/generate`: Send prompt → Should return AI response. Success: Valid JSON with `result` field.  
 
-4.3. A list of tests to be run per component to check it's working, without writing code, but describing the functionality that should be working and define a success.  
-   - Backend Server:  
-     - Test: Backend starts without crashing  
-     - Success: Process runs and listens on port 7860  
-   - API Layer:  
-     - Test: Send GET to /health  
-     - Success: Returns {"status": "ok", "ai_key_set": true/false}  
-   - AI Client Module:  
-     - Test: Send valid prompt to /infer endpoint  
-     - Success: Returns non-empty response from Blablador API within 30s  
-   - Environment & Security Handler:  
-     - Test: Run container without BLABLADOR_API_KEY  
-     - Success: Log contains warning "BLABLADOR_API_KEY not set"  
-   - Logging Module:  
-     - Test: Check container logs during startup  
-     - Success: Logs show startup message and key status  
-   - Docker Container:  
-     - Test: Build and run locally with docker run  
-     - Success: Server accessible at http://localhost:7860  
+**AI Configuration Manager**:  
+- Update config via `/configure` → Verify config changes persist for next `/generate`. Success: Inference uses new model.  
 
-5. Task of Full Pipeline Test: A test description for the full interaction from input to output, without writing code, but determining hw success would look like, and write some mock-up input data to use for testing  
-   Full Pipeline Test:  
-   - Input: POST to /process with JSON: {"text": "Explain quantum computing"}  
-   - Flow: API receives → backend processes → detects need for AI → calls Blablador API with model_alias="large" → returns generated text  
-   - Success Criteria:  
-     - Returns 200 OK  
-     - Response contains {"result": "generated text about quantum computing..."}  
-     - End-to-end time < 45 seconds  
-     - No errors in logs  
-   - Mock-up Input: {"text": "What is the capital of France?"}  
-   - Expected Output: {"result": "The capital of France is Paris."}  
+**Helmholtz-Blabladot Client**:  
+- Call with valid key → Should return AI response. Success: Non-error response from Helmholtz.  
+- Call with invalid key → Should return 401. Success: Error handling works.  
 
-6. Task of API: Based on API logs documentation, add api endpoints for all functioanlities to be tested later via api request to the app, e.g. gradio endpoint ot fast api. Remember that the full application will be hosted on huggingface based on the parameters provided. fastapis need to be forwarded to the url based on accroding documentation. with a reference to the deployment/huggingface_interactions file.  
-   - Add FastAPI endpoints:  
-     - GET /health → returns service status and AI key presence  
-     - POST /infer → accepts {"prompt": "...", "max_tokens": 100} → returns AI response  
-     - POST /process → generic endpoint for backend processing (routes to AI if needed)  
-   - Use FastAPI to generate OpenAPI docs (Swagger UI) at /docs  
-   - Ensure all endpoints are reachable via Hugging Face Space URL: https://[username]-[repo].hf.space  
-   - Forward FastAPI to port 7860 (default for HF Spaces)  
-   - Reference: deployment/huggingface_interactions.md for deployment scripts and secret setup  
+**Startup Validator**:  
+- Deploy without `BLABLADOR_API_KEY` → Logs should show error. Success: Error visible in HF logs.  
 
-7. Task of Monitoring: Monitoring of Deployment Process and editing files based on log monitoring until it is successfully deployed and running in its huggingface space, and all functioanlity is working.  
-   - Monitor Hugging Face Space build
+5. Task of Full Pipeline Test: A test description for the full interaction from input to output, without writing code, but determining how success would look like, and write some mock-up input data to use for testing  
+**Test Description**:  
+1. Deploy the FastAPI backend on Hugging Face Spaces.  
+2. Send a POST to `/configure` with `{"model": "small", "endpoint": "https://api.helmholtz-blablador.fz-juelich.de/v1"}`.  
+3. Send a POST to `/generate` with `{"prompt": "Hello, how are you?"}`.  
+4. Check response and logs.  
+
+**Mock Input Data**:  
+- `/configure`: `{"model": "small", "endpoint": "https://api.helmholtz-blablador.fz-juelich.de/v1"}`  
+- `/generate`: `{"prompt": "Hello, how are you?"}`  
+
+**Success Criteria**:  
+- `/configure` returns `{"status": "updated"}`.  
+- `/generate` returns a JSON with `result` containing AI response.  
+- Logs show no error for missing key (if key is set).  
+
+6. Task of API: Based on API logs documentation, add api endpoints for all functionalities to be tested later via api request to the app, e.g. gradio endpoint or fast api. Remember that the full application will be hosted on huggingface based on the parameters provided. fastapis need to be forwarded to the url based on according documentation. with a reference to the deployment/huggingface_interactions file.  
+**API Endpoints**:  
+- `/configure` (POST) → Accepts JSON with AI settings → Updates config → Returns status.  
+- `/generate` (POST) → Accepts JSON with prompt → Calls Helmholtz API → Returns AI response.  
+- `/health` (GET) → Returns `{"status": "OK"}`.  
+
+**Hugging Face Deployment**:  
+- Use `Containerfile` to run FastAPI with `uvicorn`.  
+- Set `BLABLADOR_API_KEY` as a Space secret.  
+- Forward FastAPI endpoints via Hugging Face’s `/api` route (e.g., `https://<space-name>.app/health`).  
+- Reference: `deployment/huggingface_interactions.md` for URL forwarding and secret management.  
+
+7. Task of Monitoring: Monitoring of Deployment Process and editing files based on log monitoring until it is successfully deployed and running in its huggingface space, and all functionality is working.  
+**Monitoring Steps**:  
+1. Deploy the FastAPI app on Hugging Face Spaces.  
+2. Monitor logs for:  
+   - Startup errors (missing `BLABLADOR_API_KEY`).  
+   - 500 errors in `/generate` or `/configure`.  
+   - Successful inference responses.  
+3. If errors occur:  
+   - Check config for correct key.  
+   - Validate API endpoint URL.  
+   - Fix code logic (e.g., error handling).  
+4. Test all endpoints with mock data.  
+5. Confirm all functionality works → Mark deployment successful.
 
 ## GitHub Repos
-- https://github.com/reorproject/reor.git
+
 
 ## Functionality Expectations
-- Deploy the backend of the reor project (https://github.com/reorproject/reor.git) to Hugging Face Spaces.
-- Expose backend functionalities via APIs (no frontend).
-- Integrate AI functionality using an OpenAI-compatible endpoint: `https://api.helmholtz-blablador.fz-juelich.de/v1`.
-- Use model alias `large` and authenticate with environment variable `BLABLADOR_API_KEY`.
-- Log a warning in container logs if `BLABLADOR_API_KEY` is not set.
-- Focus solely on backend deployment; no frontend or UI modifications.
-- Ensure compatibility with Hugging Face Spaces (e.g., Docker setup, port exposure, environment variable handling).
+- Deploy only the backend of the reor application on Hugging Face Spaces using FastAPI.
+- Expose the backend via FastAPI endpoints, with no frontend.
+- Preserve AI integration with the Helmholtz-Blabladot API (OpenAI-compatible endpoint).
+- Allow dynamic configuration of AI settings (e.g., model alias, endpoint URL) via a dedicated API endpoint (e.g., `/configure`).
+- Log an error if the `BLABLADOR_API_KEY` environment variable is missing.
+- Ensure AI inference is routed through the Helmholtz-Blabladot API using the dynamically configured settings.
+- Deploy the FastAPI service within a container (using a `Containerfile` or equivalent) compatible with Hugging Face Spaces.
+- Use Hugging Face Space secrets to securely store sensitive data like `BLABLADOR_API_KEY`.
+- Provide endpoints such as `/configure` (POST) to update AI settings and `/generate` (POST) to trigger AI inference.
+- Implement logging for errors and inference activity.
+- Ensure the application runs within Hugging Face Spaces constraints (e.g., no persistent storage, GPU limitations if applicable).
 
 ## API Endpoints
-- **/api/health** – Health check endpoint to verify backend is running and responding.
-- **/api/ai/inference** – Endpoint to trigger AI inference using the OpenAI-compatible endpoint at `https://api.helmholtz-blablador.fz-juelich.de/v1` with model alias `large` and authentication via `BLABLADOR_API_KEY`.
-- **/api/logs/check** – Internal endpoint or startup logic to log warnings if `BLABLADOR_API_KEY` is not set in environment variables.
+- **`/configure` (POST)**: Allows external clients to dynamically update AI settings (e.g., model alias, endpoint URL) via a JSON payload.  
+- **`/generate` (POST)**: Triggers AI inference using the Helmholtz-Blabladot API with the currently configured settings.  
+- **`/health` (GET)**: Provides a liveness probe to verify the backend is running and responsive.
 
 ## HF Deployment Data
-Profile: reorproject
-Space: reorproject/reor
+Profile: harvesthealth
+Space: magentic-ui
