@@ -1,120 +1,157 @@
-### **1. Estimation of Project Scope (1-10)**
-**Score: 8/10**
-**Core parts**:
-1. **API Integration** – Replace OpenAI calls with Helmholtz BLABLADOR API (`/v1/completions`) using `BLABLADOR_API_KEY` from Hugging Face environment variables.
-2. **Gradio-to-HF-Spaces Adaptation** – Modify existing Gradio app for Docker deployment on Hugging Face with port `7860` exposed.
-3. **Reverse Proxy & API Forwarding** – Ensure external API access via `harvesthealth-magnetic-ui.hf.space` (e.g., `/api/generate`).
-4. **Security** – Validate API keys, rate-limit endpoints, and ensure HTTPS.
-5. **Testing & Monitoring** – Validate full pipeline (input → Helmholtz API → output) and log deployment issues.
+### **1. Estimation of Project Scope (1-10) & Core Parts**
+**Scope Rating**: **8/10** (High complexity due to integration of external API, RAG logic, and Hugging Face deployment constraints).
+**Core Parts**:
+- **Backend Replacement**: Replace Ollama calls with OpenAI-compatible API (`BLABLADOR`).
+- **Vector Embeddings**: Retain LanceDB for local storage.
+- **RAG Pipeline**: Implement semantic search, note chunking, and Q&A.
+- **API Layer**: Expose FastAPI endpoints for external interaction.
+- **Deployment**: Docker + Hugging Face Space with port forwarding.
 
 ---
 
 ### **2. Project Description**
 **Vision**:
-Deploy an OpenAI-compatible LLM interface (originally from `reor.git`) on Hugging Face Spaces, using the **Helmholtz BLABLADOR API** as the backend. The app will retain its language logic (e.g., prompt processing, temperature controls) while exposing APIs for external management (e.g., programmatic text generation).
+A **privacy-first**, **locally hosted** AI knowledge manager that integrates with `BLABLADOR`'s OpenAI-compatible API, enabling:
+- **Semantic search** via vector embeddings (LanceDB).
+- **RAG-based Q&A** (retrieve + generate) for notes.
+- **Obsidian-like markdown editor** with related note retrieval.
 
 **Concrete Goals**:
-1. **Functional**:
-   - Replace all OpenAI API calls in the Gradio app with Helmholtz BLABLADOR API requests (`/v1/completions`).
-   - Securely fetch `BLABLADOR_API_KEY` from Hugging Face Space environment variables.
-   - Expose APIs (e.g., `/api/generate`, `/api/health`) alongside the Gradio UI.
-2. **Compatibility**:
-   - Maintain OpenAI-compatible parameters (e.g., `max_tokens`, `temperature`).
-   - Support Hugging Face Spaces’ Docker deployment constraints (port `7860`).
-3. **Accessibility**:
-   - UI at `https://harvesthealth-magnetic-ui.hf.space` (port `7860`).
-   - APIs accessible via the same domain (e.g., `https://harvesthealth-magnetic-ui.hf.space/api/generate`).
+- Replace Ollama with `BLABLADOR_API_KEY` for LLM inference.
+- Expose **FastAPI endpoints** (`/chat`, `/search`, `/notes`) for Hugging Face Space.
+- Maintain **local-first** data storage (no cloud dependency).
 
 **Future Use Cases**:
-- **Extensibility**: Add support for other OpenAI-compatible APIs (e.g., Azure OpenAI) via a plugin system.
-- **Scalability**: Deploy multiple instances for load balancing.
-- **Monitoring**: Log API usage and errors for debugging (integrate with Hugging Face Datasets).
-
-**Future Integrations**:
-1. **OpenAI-Compatible APIs**: Backend swappability (e.g., local models via `vLLM`).
-2. **Hugging Face Hub**: Model versioning and updates.
-3. **Authentication**: Add API key authentication for `/api/generate`.
+- **Enterprise Knowledge Bases**: Deploy on private Hugging Face Spaces for secure internal use.
+- **Cross-App Integrations**: Plugins for Notion, Obsidian, or Jupyter via API.
+- **Custom Models**: Extend to support other OpenAI-compatible APIs (e.g., Oobabooga).
 
 ---
 
-### **3. Other Projects/API Endpoints for Integration**
-| **Component**               | **Endpoint/API**                          | **Type**               | **Integration Notes**                                                                 |
-|-----------------------------|-------------------------------------------|------------------------|--------------------------------------------------------------------------------------|
-| Helmholtz BLABLADOR API     | `https://api.helmholtz-blablador.fz-juelich.de/v1/completions` | OpenAI-compatible LLM  | Replace all OpenAI API calls. Model alias: `large`. Auth: Bearer token (`BLABLADOR_API_KEY`). |
-| Hugging Face Spaces         | `https://harvesthealth-magnetic-ui.hf.space` | Deployment Platform    | Docker-based Gradio app. Reverse proxy for API forwarding.                          |
-| Gradio                     | Port `7860` (default)                     | UI Framework           | Existing app logic preserved. Environment variables for `BLABLADOR_API_KEY`.        |
+### **3. External Projects/APIs to Integrate**
+| **Component**          | **Purpose**                                                                 | **Integration Notes**                                                                                     |
+|------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| **BLABLADOR API**      | LLM inference (OpenAI-compatible)                                         | Use `requests` to call `https://api.helmholtz-blablador.fz-juelich.de/v1` with `alias-large`.           |
+| **LanceDB**            | Vector embeddings for semantic search                                      | Local installation (or cloud-hosted for Hugging Face).                                                |
+| **FastAPI**            | Backend API layer                                                           | Define `/chat`, `/search`, `/notes` endpoints.                                                       |
+| **Gradio/Streamlit**   | Frontend UI                                                                 | Gradio preferred for API-friendly deployment (port `7860`).                                              |
+| **Hugging Face Space** | Hosting + reverse proxy                                                     | Deploy via Docker, expose `/chat` endpoint at `https://harvesthealth-magnetic-ui.hf.space/chat`.      |
 
 ---
 
-### **4. Components & Subtasks**
-#### **4.1 Components to Build**
-1. **API Integration Layer**
-   - Replaces OpenAI calls with Helmholtz BLABLADOR API requests.
-   - Handles authentication via `BLABLADOR_API_KEY`.
-   - *Interaction*: Called by Gradio frontend and exposed API endpoints.
+### **4. Component Breakdown**
+#### **4.1. Core Components to Build**
+1. **Backend (FastAPI)**:
+   - API routes for `/chat`, `/search`, `/notes`.
+   - Integration with `BLABLADOR_API_KEY` and LanceDB.
+2. **Vector DB (LanceDB)**:
+   - Store and query embeddings for semantic search.
+3. **Frontend (Gradio)**:
+   - Markdown editor + sidebar for related notes (RAG).
+4. **Docker Image**:
+   - Containerize FastAPI + Gradio + LanceDB.
+5. **Hugging Face Space**:
+   - Configure `space.yml` for port forwarding (`7860` → `/chat`).
 
-2. **Gradio App Adapter**
-   - Modifies `reor.git` to load `BLABLADOR_API_KEY` from environment variables.
-   - Ensures compatibility with Hugging Face Spaces Docker template.
-   - *Interaction*: Frontend UI + API layer.
+#### **4.2. Subtasks per Component**
+**Backend (FastAPI)**:
+- [ ] Replace Ollama calls with `BLABLADOR_API_KEY` (use `requests`).
+- [ ] Implement **RAG pipeline**:
+  - Chunk notes → embed with `BLABLADOR` → store in LanceDB.
+  - Query LanceDB for semantic search.
+- [ ] Secure API keys via environment variables.
+- [ ] **Architecture**:
+  - `POST /chat`: Accept prompt → retrieve context → generate response.
+  - `GET /search`: Return top-k similar notes.
+  - `POST /notes`: CRUD for markdown files.
 
-3. **Reverse Proxy & API Forwarding**
-   - Configures Hugging Face Spaces to expose internal APIs (e.g., `/api/generate`) via the Space URL.
-   - *Interaction*: Routes external requests to Gradio’s internal endpoints.
+**LanceDB**:
+- [ ] Initialize local DB for embeddings.
+- [ ] Test vector similarity queries.
 
-4. **Security Middleware**
-   - Validates `BLABLADOR_API_KEY` before BLABLADOR API calls.
-   - Rate-limits `/api/generate` to avoid abuse.
-   - *Interaction*: Intercepts API requests before processing.
+**Frontend (Gradio)**:
+- [ ] Build UI with:
+  - Text input for prompts.
+  - Markdown preview.
+  - Sidebar for related notes (from `/search` endpoint).
+- [ ] Connect to FastAPI via `/chat`.
 
-5. **Deployment Scripts**
-   - Updates `Dockerfile` for Hugging Face Spaces (port `7860` exposed).
-   - Sets up CI/CD (e.g., automated testing on push).
-   - *Interaction*: Deploys the app to `harvesthealth-magnetic-ui.hf.space`.
+**Docker**:
+- [ ] `Dockerfile` with dependencies (FastAPI, LanceDB, Gradio).
+- [ ] Multi-stage build to minimize size.
 
----
+**Hugging Face Space**:
+- [ ] Configure `space.yml` to forward `7860` → `/chat`.
+- [ ] Set `BLABLADOR_API_KEY` in Hugging Face env vars.
 
-#### **4.2 Subtasks per Component**
-| **Component**               | **Subtasks**                                                                                                                                                                                                 |
-|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **API Integration Layer**   |                                                                                                                                                                                                      |
-|                             | - Audit `reor.git` for OpenAI API calls (e.g., `openai.Completion.create`).                                                                                                                             |
-|                             | - Replace with `requests.post()` to Helmholtz BLABLADOR API (`/v1/completions`) using `BLABLADOR_API_KEY`.                                                                                               |
-|                             | - Add error handling for API failures (e.g., rate limits, invalid keys).                                                                                                                                 |
-|                             | - Mock BLABLADOR API responses locally for testing.                                                                                                                                                           |
-|                             | - Protocol: Use `os.environ.get("BLABLADOR_API_KEY")` with validation.                                                                                                                                  |
-| **Gradio App Adapter**      |                                                                                                                                                                                                      |
-|                             | - Fork `JsonLord/reor` → `harvesthealth-ai/reor`.                                                                                                                                                           |
-|                             | - Modify `app.py` to load `BLABLADOR_API_KEY` from environment variables.                                                                                                                               |
-|                             | - Test locally with a dummy key (`export BLABLADOR_API_KEY="test123"`).                                                                                                                                     |
-|                             | - Update `requirements.txt` if new dependencies (e.g., `requests`) are needed.                                                                                                                               |
-| **Reverse Proxy**           |                                                                                                                                                                                                      |
-|                             | - Configure Hugging Face Spaces to proxy `/api/*` to Gradio’s internal endpoints (e.g., `http://localhost:7860/api/generate`).                                                                         |
-|                             | - Test forwarding with `curl -X POST "https://harvesthealth-magnetic-ui.hf.space/api/generate"`.                                                                                                           |
-|                             | - Protocol: Use Hugging Face’s built-in reverse proxy or Nginx in Docker.                                                                                                                                |
-| **Security Middleware**     |                                                                                                                                                                                                      |
-|                             | - Add API key validation for `/api/generate` (e.g., check `Authorization: Bearer` header).                                                                                                               |
-|                             | - Implement rate limiting (e.g., 10 requests/minute).                                                                                                                                                          |
-|                             | - Use HTTPS for all external communications.                                                                                                                                                                   |
-| **Deployment Scripts**      |                                                                                                                                                                                                      |
-|                             | - Update `Dockerfile` to expose port `7860`.                                                                                                                                                                |
-|                             | - Add `.hf` secrets for `BLABLADOR_API_KEY` (Hugging Face Space environment).                                                                                                                              |
-|                             | - Create a CI script (e.g., GitHub Actions) to test locally before deploying.                                                                                                                            |
-|                             | - Fork repository to `harvesthealth-ai` with updated `README.md` (includes setup instructions).                                                                                                          |
-
----
-**Note on External Code**:
-- **Helmholtz BLABLADOR API**: Full integration is possible (no need to mirror code). Use their `/v1/completions` endpoint directly.
-- **Gradio**: Existing code can be adapted without mirroring (only environment variable and API replacement needed).
+#### **4.3. Tests per Component**
+| **Component**       | **Test Description**                                                                 | **Success Criteria**                                                                 |
+|---------------------|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| **Backend API**     | `POST /chat` with prompt → returns LLM response.                                   | Response contains generated text from `BLABLADOR`.                                 |
+|                     | `GET /search` with query → returns top-3 similar notes.                           | Notes match semantic content (checked via `cosine_similarity`).                    |
+|                     | `POST /notes` with markdown → saves file locally.                                 | File exists in storage directory.                                                 |
+| **LanceDB**         | Insert 10 embeddings → query with semantic term → returns correct matches.        | Top match is within 0.1 cosine distance of expected vector.                         |
+| **Frontend (Gradio)** | Submit prompt → UI displays LLM response + related notes.                        | Response appears in chat box; sidebar shows 2+ notes.                               |
+| **Docker**          | Build image → run container → APIs accessible on port `7860`.                     | `curl localhost:7860/chat` returns JSON response.                                  |
+| **Hugging Face**    | Deploy space → access `https://harvesthealth-magnetic-ui.hf.space/chat`.         | API endpoint returns expected data (no 500 errors).                                  |
 
 ---
 
-#### **4.3 Tests per Component**
-| **Component**               | **Test Description**                                                                                                                                                                                                 | **Success Criteria**                                                                                                                                                                                                 |
-|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **API Integration Layer**   |                                                                                                                                                                                                                       |                                                                                                                                                                                                                       |
-|                             | 1. **API Call Test**: Send a mock prompt to BLABLADOR API with `BLABLADOR_API_KEY`.                                                                                                                                    | Returns valid completion text with `text` and `usage` fields.                                                                                                                                                         |
-|                             | 2. **Key Validation Test**: Pass an invalid/missing `BLABLADOR_API_KEY`.                                                                                                                                       | Returns `401 Unauthorized` or clear error message.                                                                                                                                                               |
-|                             | 3. **Parameter Test**: Test OpenAI-compatible params (e.g., `max_tokens=50`, `temperature=0.7`).                                                                                                               | BLABLADOR API respect params and returns expected output.                                                                                                                                                           |
-| **Gradio App Adapter**      |                                                                                                                                                                                                                       |                                                                                                                                                                                                                       |
-|
+### **5. Full Pipeline Test**
+**Input**:
+- User uploads 3 markdown notes (`note1.md`, `note2.md`, `note3.md`).
+- Notes contain overlapping topics (e.g., "AI", "knowledge management").
+- User asks: `"Explain the concept of RAG in my notes."`
+
+**Expected Output**:
+1. **Backend**:
+   - Chunks notes → embeds with `BLABLADOR` → stores in LanceDB.
+   - Retrieves top-2 relevant notes via semantic search.
+   - Passes context + prompt to `BLABLADOR_API_KEY`:
+     ```json
+     {
+       "model": "alias-large",
+       "messages": [
+         {"role": "system", "content": "You are an expert on knowledge management."},
+         {"role": "user", "content": "Explain RAG using context: [note1_embed] [note2_embed]"}
+       ]
+     }
+     ```
+2. **Frontend**:
+   - Gradio UI displays:
+     - **Chat response**: Concise RAG-based explanation.
+     - **Sidebar**: `note1.md` and `note2.md` (highlighted as sources).
+
+**Mock Input Data** (for testing):
+```markdown
+# note1.md
+## RAG in AI
+Retrieval-Augmented Generation combines **search** and **LLMs**.
+Steps:
+1. Retrieve relevant documents.
+2. Pass to LLM for response.
+```
+
+```markdown
+# note2.md
+## Knowledge Management
+Tools like **Obsidian** and **Reor** use vectors for semantic links.
+```
+
+**Success Criteria**:
+- API response contains **"retrieve"** and **"generate"** in answer.
+- Sidebar shows `note1.md` and `note2.md` with confidence scores > 0.9.
+
+---
+
+### **6. Task: API Endpoints**
+**FastAPI Endpoints** (to be tested via Hugging Face Space):
+| **Endpoint**       | **Method** | **Description**                                                                 | **Request Example**                                                                 | **Expected Response**                                                                 |
+|--------------------|------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| `/chat`            | POST       | RAG-based Q&A.                                                                | `{"prompt": "Explain RAG"}`, `{"notes": ["note1.md"]}`                          | `{"response": "RAG combines retrieval..."}`                                         |
+| `/search`          | GET        | Semantic search for notes.                                                    | `?query="AI"`                                                                       | `[{"id": "note1", "title": "RAG in AI", "score": 0.99}]`                            |
+| `/notes`           | POST       | Create/update a note.                                                          | `{"content": "# Test", "filename": "test.md"}`                                    | `{"status": "success"}`                                                              |
+| `/notes/{id}`      | GET        | Retrieve a note by ID.                                                         | `/notes/1`                                                                         | `{"content": "# Test", "filename": "test.md"}`                                      |
+| `/embeddings`      | POST       | Add embeddings to LanceDB.                                                     | `{"text": "RAG is...", "note_id": "1"}`                                           | `{"status": "inserted"}`                                                             |
+
+**H

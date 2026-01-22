@@ -10,110 +10,90 @@ The current codebase you are working in is to be adapted following the vision of
 See what huggingface sdk from gradio over streamlit to docker fits best and use that, configure the README.md file accordingly and prepare to upload the file app, not just the new features, but the full app expanded with these new features, to the huggingface space. Monitor deployment and once it is running, test the api endpoints you had set to see the functionality of the app inside that huggingface space.
 
 ## Project Specific Instructions
-Here’s a structured **`AGENTS.md`** file tailored to your project, including specific instructions for agents (e.g., CI/CD pipelines, deployment scripts, or monitoring bots) to automate tasks while respecting your context:
+Here’s an expanded **`AGENTS.md`** file with **specific instructions** tailored for the Reor project’s Hugging Face deployment, incorporating the context provided. This document assumes you’re implementing AI agents (e.g., backend APIs, UI components, or CI/CD pipelines) for Reor’s adapted vision:
+
+---
+# **AGENTS.md: Reor Deployment Agents & Roles**
+*Rules of operation for the Reor project’s Hugging Face deployment.*
 
 ---
 
-# **AGENTS.md**
-*Automation Guidelines for Helmholtz BLABLADOR + Gradio Integration*
+## **1. Project Overview**
+Reor is transitioning from a **local-first** to a **cloud-deployable, API-first** knowledge management system, leveraging:
+- **BLABLADOR’s OpenAI-compatible API** (`alias-large`) for LLM inference.
+- **FastAPI** as the backend, with **Hugging Face Spaces** hosting the frontend (Gradio).
+- **LanceDB** for vector embeddings and semantic search.
+- **Docker** for containerization and deployment.
+
+**Key Adaptations**:
+- Replace Ollama with `BLABLADOR_API_KEY` (no local models).
+- Expose `/chat`, `/search`, and `/notes` endpoints for **programmatic access**.
+- Maintain local data storage while enabling cloud-hosted UI.
 
 ---
 
-## **1. Agent Roles & Responsibilities**
-Agents in this project must:
-1. **Replace OpenAI API calls** with Helmholtz BLABLADOR API (`/v1/completions`).
-2. **Securely handle credentials** via Hugging Face Secrets/Environment Variables.
-3. **Deploy to Hugging Face Spaces** with reverse proxy support for `/api/*` endpoints.
-4. **Validate and log** API responses, errors, and performance metrics.
+## **2. Agent Roles & Responsibilities**
+Each "agent" (component/module) has a specific role in the deployment pipeline.
 
-| **Agent Type**       | **Purpose**                                                                 | **Key Tasks**                                                                 |
-|----------------------|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| **API-Adapter Agent** | Replaces OpenAI calls with BLABLADOR API logic.                            | Audit `reor.git`, replace API calls, mock BLABLADOR locally.                   |
-| **Gradio Config Agent** | Adapts Gradio for Hugging Face Spaces (Docker, env vars).                   | Update `app.py`, `Dockerfile`, test with `BLABLADOR_API_KEY`.                |
-| **Deployment Agent**  | Deploys to Hugging Face Spaces with reverse proxy for APIs.               | Expose port `7860`, configure `/api/*` forwarding, set up CI/CD.              |
-| **Security Agent**    | Validates API keys, rate-limits endpoints, ensures HTTPS.                   | Add auth middleware, log failures, enforce rate limits.                       |
-| **Monitoring Agent**  | Logs API usage, errors, and performance metrics.                           | Integrate with Hugging Face Datasets or Prometheus for analytics.             |
+### **Agent 1: Backend API (FastAPI)**
+**Purpose**: Serve `/chat`, `/search`, and `/notes` endpoints, integrating with BLABLADOR and LanceDB.
 
----
+#### **Specific Instructions**
+- **Replace Ollama with BLABLADOR**:
+  - Replace all Ollama calls with HTTP requests to:
+    ```python
+    endpoint = "https://helmholtz-blablador.fz-juelich.de/v1"
+    headers = {"Authorization": f"Bearer {os.getenv('BLABLADOR_API_KEY')}"}
+    ```
+  - Use `requests.post(f"{endpoint}/chat/completions", json={...})` for completions.
 
-## **2. Agent-Specific Instructions**
+- **Implement RAG Pipeline**:
+  - **Chunking**: Split notes into `512-token` chunks (e.g., using `langchain.text_splitter`).
+  - **Embedding**: Send chunks to BLABLADOR’s `/embeddings` endpoint.
+  - **Storage**: Save embeddings in LanceDB with metadata (note_id, chunk_id).
 
-### **A. API-Adapter Agent**
-**Goal**: Replace OpenAI API calls with Helmholtz BLABLADOR API.
+- **FastAPI Endpoints**:
+  | Endpoint          | Method | Implementation Notes                                                                                     |
+  |-------------------|--------|--------------------------------------------------------------------------------------------------------|
+  | `/chat`           | POST   | Retrieve top-k chunks from LanceDB → pass to BLABLADOR → return response.                              |
+  | `/search`         | GET    | Query LanceDB for semantic matches (e.g., `query="RAG"` → return chunks with `similarity > 0.8`).       |
+  | `/notes`          | POST   | Save markdown to disk → auto-chunk/embed → update LanceDB.                                             |
+  | `/notes/{id}`     | GET    | Return markdown content + metadata.                                                                    |
 
-#### **Steps**:
-1. **Audit `reor.git`**:
-   - Search for `openai.Completion.create` or API keys hardcoded in the repo.
-   - Example:
-     ```python
-     # BEFORE:
-     response = openai.Completion.create(
-         engine="text-davinci-003",
-         prompt="Hello",
-         max_tokens=50
-     )
+- **Security**:
+  - Never hardcode `BLABLADOR_API_KEY`. Use Hugging Face Space environment variables:
+    ```python
+    BLABLADOR_API_KEY = os.getenv("BLABLADOR_API_KEY")
+    if not BLABLADOR_API_KEY:
+        raise ValueError("Missing BLABLADOR_API_KEY!")
+    ```
 
-     # AFTER:
-     import os
-     import requests
-
-     headers = {"Authorization": f"Bearer {os.environ['BLABLADOR_API_KEY']}"}
-     response = requests.post(
-         "https://api.helmholtz-blablador.fz-juelich.de/v1/completions",
-         json={
-             "prompt": "Hello",
-             "max_tokens": 50,
-             "model": "large"  # Required BLABLADOR alias
-         },
-         headers=headers
-     ).json()
-     ```
-
-2. **Validate BLABLADOR API Key**:
-   - Add a helper function to check `BLABLADOR_API_KEY`:
-     ```python
-     def validate_blablador_key():
-         if not os.environ.get("BLABLADOR_API_KEY"):
-             raise ValueError("BLABLADOR_API_KEY not set in environment variables.")
-     ```
-
-3. **Mock BLABLADOR API Locally**:
-   - Use `responses` library to simulate API responses during testing:
-     ```python
-     import responses
-
-     @responses.activate
-     def test_blablador_logic():
-         responses.add(
-             responses.POST,
-             "https://api.helmholtz-blablador.fz-juelich.de/v1/completions",
-             json={"choices": [{"text": "Mock response"}]}
-         )
-         # Test your logic here...
-     ```
+- **Testing**:
+  - Test `/chat` with:
+    ```bash
+    curl -X POST http://localhost:7860/chat \
+      -H "Content-Type: application/json" \
+      -d '{"prompt": "What is RAG?"}'
+    ```
+  - Verify `/search` returns LanceDB matches with `similarity` scores.
 
 ---
 
-### **B. Gradio Config Agent**
-**Goal**: Adapt Gradio for Hugging Face Spaces (Docker, env vars).
+### **Agent 2: Frontend UI (Gradio/Streamlit)**
+**Purpose**: Deliver an Obsidian-like editor with RAG/AI features via Hugging Face Spaces.
 
-#### **Steps**:
-1. **Load `BLABLADOR_API_KEY` from Env Vars**:
-   - Update `app.py` to fetch the key:
-     ```python
-     BLABLADOR_API_KEY = os.environ.get("BLABLADOR_API_KEY")
-     if not BLABLADOR_API_KEY:
-         raise EnvironmentError("BLABLADOR_API_KEY is required!")
-     ```
+#### **Specific Instructions**
+- **UI Components**:
+  - **Markdown Editor**: Use `gradio.Textbox` or `gradio.Markdown` for editing.
+  - **Chat Interface**: `gradio.Textbox` (input) + `gradio.HTML` (output) for LLM responses.
+  - **Related Notes Sidebar**:
+    ```python
+    def load_related_notes(query):
+        response = requests.get(f"http://localhost:7860/search?query={query}")
+        return "\n".join(f"**{n['title']}** (Score: {n['score']:.2f})" for n in response.json())
+    ```
 
-2. **Test Locally**:
-   - Set the key temporarily:
-     ```bash
-     export BLABLADOR_API_KEY="your_key_here"
-     python app.py
-     ```
-   - Verify the Gradio UI loads without errors.
-
-3. **Update `requirements.txt`**:
-   - Add dependencies (if needed):
-     ```
+- **Connect to Backend**:
+  - Call `/chat` for LLM responses:
+    ```python
+    def generate

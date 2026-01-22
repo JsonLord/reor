@@ -1,58 +1,104 @@
-### **Project Description**
+### **Reor Project: Adapated Vision & Goals for Hugging Face Deployment**
 
 #### **Vision**
-Deploy a Gradio-based LLM interface on Hugging Face Spaces with seamless integration of the **Helmholtz BLABLADOR API** (OpenAI-compatible endpoint). The app will preserve its original language processing logic while exposing externally accessible APIs for programmatic management, enabling AI-driven use cases with secure and scalable infrastructure.
-
-#### **Concrete Goals**
-1. **API Compatibility**:
-   - Replace hardcoded OpenAI API calls in `reor.git` with the **Helmholtz BLABLADOR API** (`api.helmholtz-blablador.fz-juelich.de/v1`) using the model alias `large`.
-   - Ensure full OpenAI API compatibility (e.g., `/v1/completions` endpoint support).
-
-2. **Security & Deployment**:
-   - Load the **`BLABLADOR_API_KEY`** securely from Hugging Face Space environment variables.
-   - Deploy the app to **Hugging Face Spaces** (`harvesthealth-magnetic-ui.hf.space`) with:
-     - Gradio UI accessible at port `7860`.
-     - Externally exposed APIs via the Space URL (e.g., `/api/generate`).
-
-3. **AI-Centric Implementation**:
-   - Retain the original app’s **language logic** and **model interaction** workflows.
-   - Optimize backend logic for AI feature-rich interactions (e.g., prompt handling, temperature, max tokens).
-
-4. **API Exposure & Forwarding**:
-   - Implement a **reverse proxy system** to route external requests to internal Gradio APIs.
-   - Ensure APIs are accessible at `https://harvesthealth-magnetic-ui.hf.space/api/{endpoint}`.
+Reor is evolving into a **cloud-deployable, API-first AI knowledge management system** that retains its core local-first principles while enabling seamless integration with **OpenAI-compatible LLMs** (e.g., BLABLADOR’s `alias-large`). The adaptation focuses on:
+1. **Replacing local model inference** (Ollama) with a **remote API endpoint** (`helmholtz-blablador.fz-juelich.de/v1`), secured via `BLABLADOR_API_KEY`.
+2. **Exposing backend APIs** for programmatic access, enabling **RAG-based Q&A**, **semantic search**, and **note management** via Hugging Face’s hosted infrastructure.
+3. **Maintaining the Obsidian-like markdown editor** while adapting the UI for Gradio/Streamlit compatibility.
+4. **Leveraging LanceDB** for vector storage, ensuring scalability and performance.
 
 ---
 
-#### **Future Use Cases**
-1. **Scalable AI Workflows**:
-   - Integrate with **Hugging Face Hub** for model versioning and collaborative updates.
-   - Support **multi-modal interactions** (e.g., audio-to-text, code generation) by extending the BLABLADOR API usage.
-
-2. **Enterprise & Research Applications**:
-   - **Healthcare/Life Sciences**: Deploy in **HarvestHealth** pipelines for clinical NLP tasks (e.g., report summarization, patient query responses).
-   - **Research**: Enable reproducible experiments with BLABLADOR’s large-scale language models.
-
-3. **Programmatic Access**:
-   - **Automated Systems**: Use APIs for batch processing (e.g., generating responses for customer service bots).
-   - **Third-Party Integrations**: Connect with tools like **Notion**, **Slack**, or **Zapier** via webhooks.
-
-4. **Multi-Backend Support**:
-   - Extend to other OpenAI-compatible APIs (e.g., **Azure OpenAI**, **vLLM**, or local models) via a plugin system.
-
-5. **Monitoring & Analytics**:
-   - Log API usage, errors, and performance metrics for debugging and optimization.
-   - Integrate with Hugging Face’s **Datasets** or **Spaces Analytics** for tracking adoption.
+### **Concrete Goals**
+| **Goal**                          | **Implementation**                                                                                                                                                                                                 |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **OpenAI-Compatible API**        | Replace Ollama calls with HTTP requests to BLABLADOR’s endpoint (`/chat/completions`), using `alias-large` and `BLABLADOR_API_KEY` (fetched from Hugging Face Space env variables).                           |
+| **Backend API Exposure**          | Deploy FastAPI/Flask endpoints for:
+  - `/chat` (RAG-powered Q&A)
+  - `/search` (semantic search via LanceDB embeddings)
+  - `/notes` (CRUD operations for markdown notes)
+  - `/embeddings` (vector storage management).                                                                                                                                                           |
+| **Frontend Adaptation**           | Use **Gradio** for a lightweight, API-driven UI (port `7860`), preserving:
+  - Markdown editor for note creation.
+  - Sidebar for retrieved notes (RAG integration).
+  - Semantic search and Q&A interfaces.                                                                                                                                                                 |
+| **Docker & Hugging Face Deployment** | Containerize the app with Docker, exposing APIs via `harvesthealth-magnetic-ui.hf.space` (port `7860`). Configure `space.yml` to forward requests and manage `BLABLADOR_API_KEY` securely.               |
+| **Security**                      | - **Never hardcode** `BLABLADOR_API_KEY`; use Hugging Face Space environment variables.
+  - Restrict API access via authentication (if needed).
+  - Validate inputs to prevent injection attacks.                                                                                                                                                               |
 
 ---
 
-#### **Potential Integrations**
-| **Integration**               | **Purpose**                                                                 | **Compatibility**                          |
-|-------------------------------|-----------------------------------------------------------------------------|---------------------------------------------|
-| **Helmholtz BLABLADOR API**   | Primary LLM backend (`/v1/completions`), model alias `large`.              | OpenAI-compatible                          |
-| **Hugging Face Spaces**       | Hosting (Docker, reverse proxy, environment variables).                    | Gradio, FastAPI, or Streamlit-compatible.  |
-| **Gradio/FastAPI**            | Backend API framework for exposing endpoints (`/api/generate`, `/health`). | Extends Gradio’s native API capabilities.  |
-| **Hugging Face Hub**          | Model versioning and collaborative development.                            | Git-like workflows.                       |
-| **OpenAI-Compatible APIs**    | Fallback/alternative backends (e.g., Azure OpenAI, local models).          | Standardized API contracts.                |
-| **Monitoring Tools**          | Log API calls, errors, and performance (e.g., Prometheus, Datadog).        | Metrics/observability stack.               |
-| **Third-Party Apps**          | Connect to Slack, Notion, or custom workflows via webhooks.               | HTTP API endpoints.                        |
+### **Future Use Cases**
+1. **Collaborative Knowledge Bases**
+   - Deploy Reor as a **team knowledge hub** with shared note access (via Hugging Face Space or private API endpoints).
+   - Enable **multi-user RAG** by extending LanceDB with user-specific embeddings.
+
+2. **Integration with External Tools**
+   - **LLM Fine-Tuning**: Use BLABLADOR’s API to fine-tune `alias-large` on domain-specific notes (e.g., medical research for HarvestHealth).
+   - **Data Pipeline Connections**: Sync notes with databases (PostgreSQL, MongoDB) or cloud storage (S3) via API endpoints.
+
+3. **Advanced AI Features**
+   - **Automated Summarization**: Extract key points from long notes using BLABLADOR’s completions.
+   - **Cross-Note Synthesis**: Generate new insights by combining embeddings from unrelated notes (e.g., "How does [Note A] relate to [Note B]?").
+
+4. **Low-Code Extensibility**
+   - Expose **webhooks** for third-party apps (e.g., Slack, Notion) to trigger Q&A or note updates via Reor’s API.
+
+---
+
+### **Potential Integrations**
+| **Integration**               | **Purpose**                                                                                                                                                                                                 |
+|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **BLABLADOR API**             | Primary LLM provider for embeddings and completions (replaces Ollama).                                                                                                                                |
+| **LanceDB**                   | Vector database for semantic search (cloud-hosted or self-managed).                                                                                                                                  |
+| **Hugging Face Spaces**       | Hosting platform for the deployed UI/API (scalable, no server management).                                                                                                                             |
+| **Ollama/OpenAI Alternatives**| Fallback for local models if API availability is unreliable.                                                                                                                                               |
+| **Gradio/Streamlit**          | UI frameworks for rapid prototyping and API exposure.                                                                                                                                                      |
+| **FastAPI**                   | Backend framework for defining RESTful endpoints with Python.                                                                                                                                               |
+| **GitHub Actions**            | CI/CD for automated testing/deployment of backend/frontend repos.                                                                                                                                       |
+
+---
+### **Key Adaptations from Original Reor**
+| **Original Feature**           | **Adaptation for Hugging Face**                                                                                                                                                                               |
+|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Local Ollama models           | **Remote API calls** to BLABLADOR’s `alias-large` (no local model storage).                                                                                                                            |
+| Desktop-only deployment       | **Cloud-hosted via Hugging Face Spaces** with API access (port `7860`).                                                                                                                               |
+| Single-directory notes        | **API-driven note management** (`/notes` endpoint) with potential cloud sync (e.g., GitHub/GitLab).                                                                                             |
+| Private/local storage         | **Hybrid approach**: LanceDB for embeddings (cloud or local) + Hugging Face for UI hosting.                                                                                                               |
+| Manual markdown imports       | **Automated ingestion** via API (e.g., upload notes as files to Hugging Face Spaces and process them programmatically).                                                                               |
+
+---
+### **Deployment Strategy**
+1. **Backend**:
+   - **GitHub Repo**: `harvesthealth/reor-hf-backend` (FastAPI + LanceDB).
+   - **API Endpoints**: Expose `/chat`, `/search`, `/notes` for external access.
+   - **Security**: Environment variables for `BLABLADOR_API_KEY` (never committed).
+
+2. **Frontend**:
+   - **GitHub Repo**: `harvesthealth/reor-hf-frontend` (Gradio UI).
+   - **UI Features**: Markdown editor, note sidebar (RAG results), semantic search bar.
+
+3. **Hugging Face Space**:
+   - **Space Name**: `harvesthealth-magnetic-ui`.
+   - **Port Forwarding**: Map `harvesthealth-magnetic-ui.hf.space` to port `7860`.
+   - **Environment**: Set `BLABLADOR_API_KEY` in Space secrets.
+
+4. **Docker**:
+   - Single container for backend + frontend (multi-stage build if needed).
+   - Example `Dockerfile`:
+     ```dockerfile
+     FROM python:3.9-slim
+     WORKDIR /app
+     COPY requirements.txt .
+     RUN pip install -r requirements.txt
+     COPY . .
+     CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+     ```
+
+---
+### **Why This Adaptation?**
+- **Scalability**: Hugging Face Spaces handle traffic spikes without infrastructure management.
+- **API-First**: Enables integrations with other tools (e.g., Slack bots, data pipelines).
+- **Security**: Environment variables and API keys are managed by Hugging Face.
+- **Performance**: LanceDB + BLABLADOR’s `alias-large` balances speed and accuracy for RAG.

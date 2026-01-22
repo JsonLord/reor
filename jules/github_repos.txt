@@ -1,2 +1,6 @@
-- `JsonLord/reor`
-- `harvesthealth-ai/reor-hf-deployment`
+Here are the GitHub repositories mentioned in the **original Reor README**:
+
+1. [ollama/ollama](https://github.com/ollama/ollama)
+2. [xenova/transformers.js](https://github.com/xenova/transformers.js)
+3. [lancedb/lancedb](https://github.com/lancedb/lancedb)
+4. [reorproject/reor](https://github.com/reorproject/reor) *(main project)*
