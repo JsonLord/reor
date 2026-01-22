@@ -1,52 +1,64 @@
-### **Functionality Expectations of Reor (Post-Deployment with AI Features)**
+### **Functionality Expectations**
 
-| **Core Feature**          | **Expected Behavior**                                                                                                                                                                                                                         |
-|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Local AI Knowledge Management** | App runs locally (despite Hugging Face deployment) with AI features powered by external OpenAI-compatible API (`BLABLADOR`).                                                                                                             |
-| **Semantic Search**       | - Chunks and embeds notes using **LanceDB** for vector storage.                                                                                                                                                                               |
-|                             | - Enables **semantic search** via vector similarity (retrieves related notes dynamically).                                                                                                                                            |
-| **RAG-Based Q&A**         | - Uses the `alias-large` model via **OpenAI-compatible API** (`BLABLADOR`).                                                                                                                                                               |
-|                             | - Retrieves relevant context from notes (via LanceDB) and passes it to the LLM for **context-aware answers**.                                                                                                                         |
-| **Note Management**       | - **Markdown editor** (Obsidian-like) for creating/editing notes.                                                                                                                                                                         |
-|                             | - Supports **CRUD operations** via API (`/notes` endpoint).                                                                                                                                                                                  |
-|                             | - **Frontmatter parsing** (with caveats for compatibility).                                                                                                                                                                                 |
-| **Related Notes Sidebar** | - Dynamically populates with **vector-search results** (notes semantically related to the current note).                                                                                                                               |
-|                             | - Toggleable sidebar to cross-reference ideas.                                                                                                                                                                                              |
-| **LLM Integration**       | - **OpenAI-compatible API** as default (BLABLADOR: `https://api.helmholtz-blablador.fz-juelich.de/v1`).                                                                                                                                        |
-|                             | - Authentication via `BLABLADOR_API_KEY` (fetched from Hugging Face Space env).                                                                                                                                                    |
-|                             | - Supports **chat completions** and **embeddings** for RAG workflows.                                                                                                                                                                      |
-| **Local-Only Data Storage** | - Notes and vectors stored **locally** (not on Hugging Face servers).                                                                                                                                                                             |
-|                             | - Directory-based filesystem management (user selects storage path).                                                                                                                                                                        |
-| **API-First Design**      | - **Exposed endpoints** for programmatic access:
-  - `/chat` → LLM-powered Q&A.
-  - `/search` → Semantic search.
-  - `/notes` → CRUD for note management.
-  - `/embeddings` → Vector operations.
-| **Security**              | - **No hardcoded API keys** (uses Hugging Face Space env variables).                                                                                                                                                                         |
-|                             | - API endpoints **protected** (if required by BLABLADOR’s usage policy).                                                                                                                                                                    |
-| **Cross-Platform Support** | - Works on **Windows/Linux/macOS** (via Docker/Gradio deployment).                                                                                                                                                                             |
-| **Extensibility**         | - Supports **custom models** (if BLABLADOR API allows).                                                                                                                                                                                     |
-|                             | - **Future integrations** (e.g., Obsidian, Notion) planned via API.                                                                                                                                                                        |
-| **Performance**           | - Efficient **chunking/embedding** for large note corpora.                                                                                                                                                                                 |
-|                             | - Low-latency **RAG responses** via vector search optimization.                                                                                                                                                                               |
+| Feature               | Status       | Notes                                  |
+|-----------------------|--------------|----------------------------------------|
+| **BLABLADOR LLM API**     | ✅ Adopted   | Replaces Ollama/OpenAI logic with OpenAI-compatible endpoint (`alias-large`). |
+| **Semantic Search**       | ✅ Retained  | LanceDB embeddings and vector search unchanged. |
+| **RAG Q&A**               | ✅ Adopted   | Retrieval-augmented generation using BLABLADOR’s `alias-large` model. |
+| **API Forwarding**        | ✅ Implemented | FastAPI/Flask proxy exposes Reor’s internal APIs externally. |
+| **Docker Deployment**     | ✅ Implemented | Containerized for Hugging Face Spaces compatibility (port `7860` exposed). |
+| **Hugging Face Secrets**  | ✅ Secured   | `BLABLADOR_API_KEY` masked in Space environment variables. |
 
 ---
-### **Adaptations for Hugging Face Deployment**
-1. **Backend**:
-   - Replaces Ollama with **BLABLADOR API calls** (Python `requests` library).
-   - **FastAPI** layer to proxy `/chat`, `/search`, `/notes` to BLABLADOR.
-   - LanceDB for local vector storage (persisted in the Space filesystem).
 
-2. **Frontend**:
-   - **Gradio/Streamlit** UI exposed on port `7860`.
-   - Retains **markdown editor + related notes sidebar**.
+### **API Endpoints (Exposed via Hugging Face Space)**
+| Endpoint            | Method | Description                          | Auth Required |
+|---------------------|--------|--------------------------------------|---------------|
+| `/notes`            | GET    | List all notes in the corpus.        | Optional      |
+| `/notes/:id`        | POST   | Create/update a markdown note.       | API Key       |
+| `/notes/:id`        | GET    | Retrieve a note by ID.               | Optional      |
+| `/search`           | GET    | Semantic search query (embedding-based). | Optional      |
+| `/qa`               | POST   | RAG-powered question-answering.       | API Key       |
+| `/related`          | GET    | Retrieve related notes via vector similarity. | Optional      |
 
-3. **Deployment**:
-   - **Dockerized** with `space.yml` forwarding port `7860`.
-   - **Environment variable** (`BLABLADOR_API_KEY`) injected via Hugging Face Space settings.
-   - **APIs accessible** at `https://harvesthealth-magnetic-ui.hf.space`.
+**Example API Usage (RAG Q&A):**
+```bash
+curl -X POST "https://harvesthealth-magnetic-ui.hf.space/qa" \
+  -H "Authorization: Bearer YOUR_BLABLADOR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Summarize my notes on AI ethics"}'
+```
 
-4. **Key Workflows**:
-   - **User Query** → `/chat` endpoint → LanceDB retrieves context → BLABLADOR generates answer.
-   - **Note Creation** → Markdown saved locally → Auto-chunked/embedded.
-   - **Semantic Search** → `/search` endpoint returns vector-similar notes.
+---
+### **Core AI Features**
+1. **Local Knowledge Embedding**
+   - Notes chunked and stored as vectors in **LanceDB** (unchanged).
+   - Semantic similarity used for note linking.
+
+2. **RAG Pipeline**
+   - Query → Retrieve relevant notes → Generate answer via BLABLADOR (`alias-large`).
+   - Supports follow-up questions and context-aware responses.
+
+3. **OpenAI-Compatible LLM**
+   - BLABLADOR API (`https://api.helmholtz-blablador.fz-juelich.de/v1`) mimics OpenAI’s `/v1/chat/completions` endpoint.
+   - Key adaptations:
+     - Replace Ollama logic with BLABLADOR API calls.
+     - Handle API rate limits/errors gracefully.
+
+4. **Editor Integration**
+   - Sidebar reveals related notes (vector-matched) in real-time.
+   - Markdown editor with Obsidian-like syntax.
+
+5. **Local-First Security**
+   - All data stored locally (no cloud sync by default).
+   - API keys secured via Hugging Face Space secrets.
+
+---
+### **Deployment-Specific Features**
+- **Port Forwarding**: Hugging Face Space routes external traffic (`harvesthealth-magnetic-ui.hf.space`) to Reor’s `7860` port.
+- **Environment Variables**:
+  - `BLABLADOR_API_KEY` fetched from Space secrets (not hardcoded).
+  - Additional vars for LanceDB path, model aliases, etc.
+- **Docker Optimization**:
+  - Multi-stage build to reduce image size.
+  - Health checks for API endpoints.

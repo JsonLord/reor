@@ -1,75 +1,17 @@
-Here’s the extracted list of **API endpoints** from the Reor project and their intended purposes, adapted for an OpenAI-compatible deployment with the `BLABLADOR_API_KEY` integration:
+Here’s the extracted list of **API endpoints** from the provided context:
 
----
+| Endpoint       | Method | Description                          | Auth Required |
+|----------------|--------|--------------------------------------|---------------|
+| `/notes`       | GET    | List notes                           | Optional      |
+| `/notes/:id`   | POST   | Create/update note                   | API Key       |
+| `/search`      | GET    | Semantic search query                | Optional      |
+| `/qa`          | POST   | RAG-powered Q&A                       | API Key       |
+| `/related`     | GET    | Retrieve related notes                | Optional      |
 
-### **Core API Endpoints**
-1. **`POST /chat`**
-   - **Purpose**: LLM-powered Q&A with RAG (Retrieval-Augmented Generation).
-   - **Use Case**: Users ask questions about their notes, and the system retrieves relevant context from LanceDB before generating an answer via the `alias-large` model.
-   - **Input**: `{ "prompt": "string" }`
-   - **Output**: `{ "answer": "string" }` (LLM response).
-
-2. **`POST /search`**
-   - **Purpose**: Semantic search across notes using vector embeddings.
-   - **Use Case**: Find notes similar to a query (e.g., "What did I write about AI ethics?").
-   - **Input**: `{ "query": "string" }` (or embedding vector).
-   - **Output**: `{ "results": [{"note_id": "string", "content": "string", "similarity": float}] }`.
-
-3. **`GET /notes`**
-   - **Purpose**: List all notes in the corpus.
-   - **Use Case**: Display the directory structure or note titles to the user.
-   - **Output**: `{ "notes": [{"id": "string", "title": "string", "path": "string"}] }`.
-
-4. **`GET /notes/{id}`**
-   - **Purpose**: Retrieve a single note by ID.
-   - **Use Case**: Load a note for editing or display.
-   - **Output**: `{ "content": "markdown_string", "metadata": {"tags": [], "created_at": "timestamp"} }`.
-
-5. **`POST /notes`**
-   - **Purpose**: Create or update a note.
-   - **Use Case**: Save new notes or modify existing ones.
-   - **Input**: `{ "id": "string", "content": "markdown_string", "metadata": {"tags": [], ...} }`.
-   - **Output**: `{ "status": "success/error" }`.
-
-6. **`DELETE /notes/{id}`**
-   - **Purpose**: Delete a note and its embeddings.
-   - **Use Case**: Remove redundant or draft notes.
-   - **Output**: `{ "status": "success/error" }`.
-
-7. **`POST /embeddings`**
-   - **Purpose**: Generate embeddings for a text chunk (internal use).
-   - **Use Case**: Index new notes or update existing embeddings.
-   - **Input**: `{ "text": "string" }`.
-   - **Output**: `{ "embedding": [float, ...] }` (vector for LanceDB).
-
-8. **`POST /embeddings/query`**
-   - **Purpose**: Query embeddings for semantic similarity.
-   - **Use Case**: Power the `/search` endpoint (retrieval logic).
-   - **Input**: `{ "query": "string", "k": int (top-k results) }`.
-   - **Output**: `{ "results": [{"note_id": "string", "similarity": float}] }`.
-
----
-
-### **OpenAI-Compatible API Proxy Endpoints** (for `BLABLADOR_API_KEY`)
-*(Internal proxies to forward requests to the Helmholtz/Blablador API)*
-9. **`POST /v1/chat/completions`**
-   - **Purpose**: Proxy to `BLABLADOR_API_KEY`'s chat endpoint.
-   - **Input**: OpenAI-compatible chat input (e.g., `messages: [{"role": "user", "content": "..."}]`).
-   - **Output**: Raw response from `alias-large`.
-
-10. **`POST /v1/embeddings`**
-    - **Purpose**: Generate embeddings via `BLABLADOR_API_KEY`.
-    - **Input**: `{ "input": "string" }`.
-    - **Output**: `{ "data": [{"embedding": [float, ...]}] }`.
-
-11. **`POST /v1/completions`**
-    - **Purpose**: Proxy for text completion (e.g., autofill).
-    - **Input**: `{ "prompt": "string" }`.
-    - **Output**: `{ "choices": [{"text": "string"}] }`.
-
----
-### **Key Notes for Implementation**
-- **Authentication**: Use environment variable `BLABLADOR_API_KEY` (never hardcoded).
-- **LanceDB Integration**: Store embeddings locally or in a cloud-compatible instance for `/search` and `/chat`.
-- **RAG Pipeline**: `/chat` retrieves context from LanceDB → forwards to `BLABLADOR_API_KEY` → returns answer.
-- **Webhook Support**: Future endpoints could include `/webhooks` for external note syncs.
+**Example Request (for `/qa`):**
+```bash
+curl -X POST "https://harvesthealth-magnetic-ui.hf.space/qa" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Explain my notes on AI ethics"}'
+```

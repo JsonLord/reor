@@ -1,6 +1,9 @@
-Here are the GitHub repositories mentioned in the **original Reor README**:
-
-1. [ollama/ollama](https://github.com/ollama/ollama)
-2. [xenova/transformers.js](https://github.com/xenova/transformers.js)
-3. [lancedb/lancedb](https://github.com/lancedb/lancedb)
-4. [reorproject/reor](https://github.com/reorproject/reor) *(main project)*
+```markdown
+### **GitHub Repos**
+- **GH_OWNER**: `reorproject` (original) → **Fork and adapt**.
+- **GH_REPO**: `harvesthealth/reor-huggingface`
+  - Contains:
+    - Dockerfile + `proxy.py`.
+    - Adapted `llm-service` (BLABLADOR integration).
+    - Hugging Face Space deployment instructions.
+```

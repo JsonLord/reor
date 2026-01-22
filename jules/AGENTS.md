@@ -5,95 +5,111 @@ Agent behaviour: Scan vision of project, scan the repos asociated, scan the task
 
 
 ## important!
-The current codebase you are working in is to be adapted following the vision of the project transformation in the /jules folder. The current application should be kept and only slightly changed, improved, expanded by the features described in /jules folder. The tasks files give a starting point, but judge for yourself. Develop tests to run to first see the current application feature, how it is working and make a plan to implement the features requested in /jules folder to develop the current application inside the repo towards the vision described to achieve expansion of the current app with functionalities described in the /jules folder. Adapt your coding implemententation to the coding language used by the project, and try to go with that. Test the full app within this working space. 
+The current codebase you are working in is to be EXPANDED and ADAPTED following the vision of the project transformation in the /jules folder. You are NOT authorized to rewrite or replace the core logic of the existing application. Instead, you must:
+1. **Understand & Preserve**: First, investigate the existing codebase to understand its current features and architecture.
+2. **Expand & Integrate**: Implement the new features described in the /jules folder by expanding the existing backend logic and integrating new components into the current structure.
+3. **Enhance**: Improve and expand existing functionalities rather than replacing them. Use phrases in your plan like "Expand the backend logic by..." or "Enhance the existing UI with...".
+4. **Consistency**: Adapt your coding implementation to the coding language and style used by the project.
+5. **Document**: You MUST document all adaptations and expansions made to the project in the original README.md file by adding a new section titled '## Adaptations & Expansions' at the end of the file. Describe what was added and how the original project was improved.
 
-See what huggingface sdk from gradio over streamlit to docker fits best and use that, configure the README.md file accordingly and prepare to upload the file app, not just the new features, but the full app expanded with these new features, to the huggingface space. Monitor deployment and once it is running, test the api endpoints you had set to see the functionality of the app inside that huggingface space.
+Develop tests to run to first see the current application feature, how it is working, and then verify how your expansions integrate with the original code. Test the full, expanded app within this working space. 
+
+See what huggingface sdk from gradio over streamlit to docker fits best and use that, configure the README.md file accordingly and prepare to upload the FULL expanded app to the huggingface space.
 
 ## Project Specific Instructions
-Here’s an expanded **`AGENTS.md`** file with **specific instructions** tailored for the Reor project’s Hugging Face deployment, incorporating the context provided. This document assumes you’re implementing AI agents (e.g., backend APIs, UI components, or CI/CD pipelines) for Reor’s adapted vision:
-
----
-# **AGENTS.md: Reor Deployment Agents & Roles**
-*Rules of operation for the Reor project’s Hugging Face deployment.*
+Here’s a **comprehensive `AGENTS.md` file** tailored to your `reor` → Hugging Face integration, covering **specific instructions for agents**, **context**, and **best-practice workflows**:
 
 ---
 
-## **1. Project Overview**
-Reor is transitioning from a **local-first** to a **cloud-deployable, API-first** knowledge management system, leveraging:
-- **BLABLADOR’s OpenAI-compatible API** (`alias-large`) for LLM inference.
-- **FastAPI** as the backend, with **Hugging Face Spaces** hosting the frontend (Gradio).
-- **LanceDB** for vector embeddings and semantic search.
-- **Docker** for containerization and deployment.
-
-**Key Adaptations**:
-- Replace Ollama with `BLABLADOR_API_KEY` (no local models).
-- Expose `/chat`, `/search`, and `/notes` endpoints for **programmatic access**.
-- Maintain local data storage while enabling cloud-hosted UI.
+# **AGENTS.md**
+**Project:** Reor + BLABLADOR on Hugging Face
+**Role:** Agent Guidelines for Development, Testing, and Deployment
 
 ---
 
-## **2. Agent Roles & Responsibilities**
-Each "agent" (component/module) has a specific role in the deployment pipeline.
+## **1. Core Context & Objectives**
+### **Key Adaptations**
+| Area               | Original Reor | Hugging Face Adaptation                     |
+|--------------------|---------------|--------------------------------------------|
+| **LLM Backend**    | Ollama/OpenAI | BLABLADOR (`alias-large`) via OpenAI API   |
+| **Deployment**     | Local-only    | Hugging Face Spaces (`harvesthealth-magnetic-ui.hf.space`) |
+| **API Exposure**   | None          | Port `7860` forwarded via FastAPI proxy    |
+| **Auth**           | Local         | `BLABLADOR_API_KEY` (Space secrets)       |
 
-### **Agent 1: Backend API (FastAPI)**
-**Purpose**: Serve `/chat`, `/search`, and `/notes` endpoints, integrating with BLABLADOR and LanceDB.
-
-#### **Specific Instructions**
-- **Replace Ollama with BLABLADOR**:
-  - Replace all Ollama calls with HTTP requests to:
-    ```python
-    endpoint = "https://helmholtz-blablador.fz-juelich.de/v1"
-    headers = {"Authorization": f"Bearer {os.getenv('BLABLADOR_API_KEY')}"}
-    ```
-  - Use `requests.post(f"{endpoint}/chat/completions", json={...})` for completions.
-
-- **Implement RAG Pipeline**:
-  - **Chunking**: Split notes into `512-token` chunks (e.g., using `langchain.text_splitter`).
-  - **Embedding**: Send chunks to BLABLADOR’s `/embeddings` endpoint.
-  - **Storage**: Save embeddings in LanceDB with metadata (note_id, chunk_id).
-
-- **FastAPI Endpoints**:
-  | Endpoint          | Method | Implementation Notes                                                                                     |
-  |-------------------|--------|--------------------------------------------------------------------------------------------------------|
-  | `/chat`           | POST   | Retrieve top-k chunks from LanceDB → pass to BLABLADOR → return response.                              |
-  | `/search`         | GET    | Query LanceDB for semantic matches (e.g., `query="RAG"` → return chunks with `similarity > 0.8`).       |
-  | `/notes`          | POST   | Save markdown to disk → auto-chunk/embed → update LanceDB.                                             |
-  | `/notes/{id}`     | GET    | Return markdown content + metadata.                                                                    |
-
-- **Security**:
-  - Never hardcode `BLABLADOR_API_KEY`. Use Hugging Face Space environment variables:
-    ```python
-    BLABLADOR_API_KEY = os.getenv("BLABLADOR_API_KEY")
-    if not BLABLADOR_API_KEY:
-        raise ValueError("Missing BLABLADOR_API_KEY!")
-    ```
-
-- **Testing**:
-  - Test `/chat` with:
-    ```bash
-    curl -X POST http://localhost:7860/chat \
-      -H "Content-Type: application/json" \
-      -d '{"prompt": "What is RAG?"}'
-    ```
-  - Verify `/search` returns LanceDB matches with `similarity` scores.
+### **Agent-Specific Tasks**
+- **LLM Integration Agent**: Modify `llm-service.ts` to proxy BLABLADOR API calls.
+- **API Proxy Agent**: Build `proxy.py` (FastAPI/Flask) to forward Hugging Face requests.
+- **Docker Agent**: Containerize Reor + proxy; expose port `7860`.
+- **Deploy Agent**: Configure Hugging Face Space secrets and port forwarding.
 
 ---
 
-### **Agent 2: Frontend UI (Gradio/Streamlit)**
-**Purpose**: Deliver an Obsidian-like editor with RAG/AI features via Hugging Face Spaces.
+## **2. Agent Instructions**
+### **2.1 LLM Integration Agent**
+#### **Critical Tasks**
+1. **Replace Ollama/OpenAI Logic**:
+   - Replace `http://localhost:11434/api` with `https://api.helmholtz-blablador.fz-juelich.de/v1`.
+   - Update `llm-service.ts` to use `fetch` with `BLABLADOR_API_KEY` (from env vars).
+   - Example:
+     ```ts
+     const response = await fetch("https://api.helmholtz-blablador.fz-juelich.de/v1/chat/completions", {
+       headers: { "Authorization": `Bearer ${process.env.BLABLADOR_API_KEY}` },
+       method: "POST",
+       body: JSON.stringify({ model: "alias-large", messages: [...] })
+     });
+     ```
 
-#### **Specific Instructions**
-- **UI Components**:
-  - **Markdown Editor**: Use `gradio.Textbox` or `gradio.Markdown` for editing.
-  - **Chat Interface**: `gradio.Textbox` (input) + `gradio.HTML` (output) for LLM responses.
-  - **Related Notes Sidebar**:
-    ```python
-    def load_related_notes(query):
-        response = requests.get(f"http://localhost:7860/search?query={query}")
-        return "\n".join(f"**{n['title']}** (Score: {n['score']:.2f})" for n in response.json())
-    ```
+2. **Error Handling**:
+   - Retry on `429` (rate limits); log `401` errors for missing keys.
 
-- **Connect to Backend**:
-  - Call `/chat` for LLM responses:
-    ```python
-    def generate
+3. **Embeddings**:
+   - Use BLABLADOR’s `/embeddings` endpoint for vector generation (replace `transformers.js` if needed).
+
+4. **Cache Locally**:
+   - Cache embeddings to avoid redundant API calls (e.g., `lru-cache` library).
+
+#### **Test Cases**
+- **Test 1**: Verify `alias-large` completions match expected output.
+- **Test 2**: Ensure RAG responses use retrieved context (LanceDB + BLABLADOR).
+- **Test 3**: Validate no hardcoded API keys in code.
+
+---
+
+### **2.2 API Proxy Agent**
+#### **Critical Tasks**
+1. **Build Proxy (`proxy.py`)**:
+   - Use FastAPI/Flask to forward requests to Reor’s `7860` port.
+   - Example (FastAPI):
+     ```python
+     from fastapi import FastAPI, HTTPException, Depends, Header
+     import httpx
+
+     app = FastAPI()
+
+     async def get_auth_token(api_key: str = Header(...)):
+         return api_key
+
+     @app.post("/qa")
+     async def rag_qa(query: str, token: str = Depends(get_auth_token)):
+         if token != os.getenv("BLABLADOR_API_KEY"):
+             raise HTTPException(status_code=401, detail="Unauthorized")
+         async with httpx.AsyncClient() as client:
+             resp = await client.post("http://localhost:7860/qa", json={"query": query})
+             return resp.json()
+     ```
+
+2. **Security**:
+   - Require `Authorization: Bearer <key>` for write endpoints (`/notes`, `/qa`).
+   - Validate `BLABLADOR_API_KEY` against Space secrets.
+
+3. **Endpoints**:
+   | Reor Endpoint | Proxy Path | Auth Required |
+   |---------------|------------|---------------|
+   | `/notes`      | `/notes`   | Optional      |
+   | `/qa`         | `/qa`      | API Key       |
+   | `/search`     | `/search`  | Optional      |
+
+#### **Test Cases**
+- **Test 1**: Forward `/notes` to Reor’s internal endpoint.
+- **Test 2**: Reject unauthorized `POST /qa` requests.
+- **

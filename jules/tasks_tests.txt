@@ -1,157 +1,163 @@
-### **1. Estimation of Project Scope (1-10) & Core Parts**
-**Scope Rating**: **8/10** (High complexity due to integration of external API, RAG logic, and Hugging Face deployment constraints).
-**Core Parts**:
-- **Backend Replacement**: Replace Ollama calls with OpenAI-compatible API (`BLABLADOR`).
-- **Vector Embeddings**: Retain LanceDB for local storage.
-- **RAG Pipeline**: Implement semantic search, note chunking, and Q&A.
-- **API Layer**: Expose FastAPI endpoints for external interaction.
-- **Deployment**: Docker + Hugging Face Space with port forwarding.
+### **3. Other Projects or API Endpoints to be Integrated**
+
+1. **BLABLADOR API (LLM Provider)**
+   - **Endpoint**: [`https://api.helmholtz-blablador.fz-juelich.de/v1`](https://api.helmholtz-blablador.fz-juelich.de/v1)
+   - **Model**: `alias-large` (OpenAI-compatible)
+   - **Integration Purpose**:
+     - Replace Ollama/OpenAI logic in Reor’s backend.
+     - Power RAG, semantic search, and Q&A features.
+   - **API Docs**: Assume OpenAI-compatible (e.g., `chat/completions`, `embeddings` endpoints).
+   - **Authentication**:
+     - `BLABLADOR_API_KEY` from Hugging Face Space secrets.
+
+2. **LanceDB (Vector Database)**
+   - **Purpose**: Store and query embeddings for semantic search.
+   - **Integration Status**: Already used in Reor (no changes needed).
+
+3. **Hugging Face Spaces Deployment**
+   - **Endpoint**: `harvesthealth-magnetic-ui.hf.space`
+   - **Port Forwarding**: Expose internal port `7860` via Hugging Face.
+   - **Frontend Options**:
+     - Native Reor UI (if UI logic is preserved).
+     - Gradio/Streamlit wrapper (if replacing frontend).
+
+4. **Ollama (Deprecated)**
+   - **Current Use**: Local LLM hosting (replaced by BLABLADOR API).
+   - **Action**: Remove Ollama dependencies; proxy BLABLADOR API calls.
 
 ---
+### **4. Components to Build & Interactions**
 
-### **2. Project Description**
-**Vision**:
-A **privacy-first**, **locally hosted** AI knowledge manager that integrates with `BLABLADOR`'s OpenAI-compatible API, enabling:
-- **Semantic search** via vector embeddings (LanceDB).
-- **RAG-based Q&A** (retrieve + generate) for notes.
-- **Obsidian-like markdown editor** with related note retrieval.
-
-**Concrete Goals**:
-- Replace Ollama with `BLABLADOR_API_KEY` for LLM inference.
-- Expose **FastAPI endpoints** (`/chat`, `/search`, `/notes`) for Hugging Face Space.
-- Maintain **local-first** data storage (no cloud dependency).
-
-**Future Use Cases**:
-- **Enterprise Knowledge Bases**: Deploy on private Hugging Face Spaces for secure internal use.
-- **Cross-App Integrations**: Plugins for Notion, Obsidian, or Jupyter via API.
-- **Custom Models**: Extend to support other OpenAI-compatible APIs (e.g., Oobabooga).
+#### **Core Components**
+| **Component**               | **Purpose**                                                                 | **Dependencies**                     |
+|-----------------------------|-----------------------------------------------------------------------------|--------------------------------------|
+| **LLM Service (`llm-service`)** | Bridge BLABLADOR API to Reor’s RAG/Q&A logic.                              | BLABLADOR API, LanceDB (embeddings)  |
+| **Vector Database (LanceDB)**  | Store note embeddings for semantic search.                                  | Local file storage                   |
+| **API Proxy (`proxy.py`)**      | Forward Hugging Face Space requests to Reor’s internal APIs.             | FastAPI/Flask                       |
+| **Docker Container**            | Package Reor + proxy for Hugging Face deployment.                         | Node.js, FastAPI                     |
+| **Hugging Face Space**         | Host the app with port forwarding and secrets management.                  | Dockerfile, `BLABLADOR_API_KEY`      |
 
 ---
+#### **4.1 Subtasks by Component**
+##### **1. LLM Service Adaptation**
+- **Architecture**:
+  - Modify `src/services/llm.ts` to support BLABLADOR’s OpenAI endpoint.
+  - Add error handling for API rate limits/keys.
+  - Cache embeddings locally (avoid redundant API calls).
+- **Interaction Endpoints**:
+  - `/chat/completions` → BLABLADOR’s API.
+  - `/embeddings` → Send text chunks to BLABLADOR for vectorization.
+- **Security**:
+  - Validate `BLABLADOR_API_KEY` from environment variables.
+  - Sanitize user prompts to prevent injection.
 
-### **3. External Projects/APIs to Integrate**
-| **Component**          | **Purpose**                                                                 | **Integration Notes**                                                                                     |
-|------------------------|-----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| **BLABLADOR API**      | LLM inference (OpenAI-compatible)                                         | Use `requests` to call `https://api.helmholtz-blablador.fz-juelich.de/v1` with `alias-large`.           |
-| **LanceDB**            | Vector embeddings for semantic search                                      | Local installation (or cloud-hosted for Hugging Face).                                                |
-| **FastAPI**            | Backend API layer                                                           | Define `/chat`, `/search`, `/notes` endpoints.                                                       |
-| **Gradio/Streamlit**   | Frontend UI                                                                 | Gradio preferred for API-friendly deployment (port `7860`).                                              |
-| **Hugging Face Space** | Hosting + reverse proxy                                                     | Deploy via Docker, expose `/chat` endpoint at `https://harvesthealth-magnetic-ui.hf.space/chat`.      |
+##### **2. API Proxy (`proxy.py`)**
+- **Architecture**:
+  - FastAPI/Flask middleware to forward requests to Reor’s port (`7860`).
+  - Add authentication middleware (API keys or Hugging Face OAuth).
+- **Endpoints**:
+  - `/notes` → `http://localhost:7860/notes`
+  - `/qa` → `http://localhost:7860/qa`
+  - `/search` → `http://localhost:7860/search`
+- **Security**:
+  - Require `Authorization` header for write endpoints (`POST /notes`, `POST /qa`).
 
----
+##### **3. Docker Configuration**
+- **Dockerfile**:
+  - Multi-stage build: Node.js for Reor + Python (FastAPI) for proxy.
+  - Expose port `7860` and mount `BLABLADOR_API_KEY` as secret.
+- **Build Protocol**:
+  ```dockerfile
+  FROM node:18 AS reor
+  WORKDIR /app
+  COPY package*.json ./
+  RUN npm install
+  COPY . .
+  EXPOSE 7860
 
-### **4. Component Breakdown**
-#### **4.1. Core Components to Build**
-1. **Backend (FastAPI)**:
-   - API routes for `/chat`, `/search`, `/notes`.
-   - Integration with `BLABLADOR_API_KEY` and LanceDB.
-2. **Vector DB (LanceDB)**:
-   - Store and query embeddings for semantic search.
-3. **Frontend (Gradio)**:
-   - Markdown editor + sidebar for related notes (RAG).
-4. **Docker Image**:
-   - Containerize FastAPI + Gradio + LanceDB.
-5. **Hugging Face Space**:
-   - Configure `space.yml` for port forwarding (`7860` → `/chat`).
+  FROM python:3.9 AS proxy
+  WORKDIR /proxy
+  COPY requirements.txt .
+  RUN pip install -r requirements.txt
+  COPY proxy.py .
+  CMD ["uvicorn", "proxy:app", "--host", "0.0.0.0", "--port", "7860"]
+  ```
+- **Interaction**:
+  - Proxy container forwards requests to Reor’s Node.js service running on the same network.
 
-#### **4.2. Subtasks per Component**
-**Backend (FastAPI)**:
-- [ ] Replace Ollama calls with `BLABLADOR_API_KEY` (use `requests`).
-- [ ] Implement **RAG pipeline**:
-  - Chunk notes → embed with `BLABLADOR` → store in LanceDB.
-  - Query LanceDB for semantic search.
-- [ ] Secure API keys via environment variables.
-- [ ] **Architecture**:
-  - `POST /chat`: Accept prompt → retrieve context → generate response.
-  - `GET /search`: Return top-k similar notes.
-  - `POST /notes`: CRUD for markdown files.
-
-**LanceDB**:
-- [ ] Initialize local DB for embeddings.
-- [ ] Test vector similarity queries.
-
-**Frontend (Gradio)**:
-- [ ] Build UI with:
-  - Text input for prompts.
-  - Markdown preview.
-  - Sidebar for related notes (from `/search` endpoint).
-- [ ] Connect to FastAPI via `/chat`.
-
-**Docker**:
-- [ ] `Dockerfile` with dependencies (FastAPI, LanceDB, Gradio).
-- [ ] Multi-stage build to minimize size.
-
-**Hugging Face Space**:
-- [ ] Configure `space.yml` to forward `7860` → `/chat`.
-- [ ] Set `BLABLADOR_API_KEY` in Hugging Face env vars.
-
-#### **4.3. Tests per Component**
-| **Component**       | **Test Description**                                                                 | **Success Criteria**                                                                 |
-|---------------------|------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| **Backend API**     | `POST /chat` with prompt → returns LLM response.                                   | Response contains generated text from `BLABLADOR`.                                 |
-|                     | `GET /search` with query → returns top-3 similar notes.                           | Notes match semantic content (checked via `cosine_similarity`).                    |
-|                     | `POST /notes` with markdown → saves file locally.                                 | File exists in storage directory.                                                 |
-| **LanceDB**         | Insert 10 embeddings → query with semantic term → returns correct matches.        | Top match is within 0.1 cosine distance of expected vector.                         |
-| **Frontend (Gradio)** | Submit prompt → UI displays LLM response + related notes.                        | Response appears in chat box; sidebar shows 2+ notes.                               |
-| **Docker**          | Build image → run container → APIs accessible on port `7860`.                     | `curl localhost:7860/chat` returns JSON response.                                  |
-| **Hugging Face**    | Deploy space → access `https://harvesthealth-magnetic-ui.hf.space/chat`.         | API endpoint returns expected data (no 500 errors).                                  |
+##### **4. Hugging Face Space Setup**
+- **Secrets**:
+  - Add `BLABLADOR_API_KEY` in Space settings → Secrets.
+- **Port Forwarding**:
+  - Map `7860` → `harvesthealth-magnetic-ui.hf.space`.
+- **Deployment**:
+  - Use `Dockerfile` from the GH repo; no GPU required.
 
 ---
+#### **4.2 Integration Judgments**
+| **External Code/Service** | **Integration Feasibility** | **Notes**                                                                 |
+|---------------------------|----------------------------|---------------------------------------------------------------------------|
+| BLABLADOR API             | Full Integration            | OpenAI-compatible; no code mirroring needed.                             |
+| Ollama                    | Deprecated                  | Replace all local model calls with BLABLADOR API.                         |
+| Transformers.js           | Retained                   | Only used for embeddings; BLABLADOR API handles LLM logic.                |
+| LanceDB                   | Retained                   | No changes needed; embeddings remain local.                              |
+| FastAPI/Flask Proxy       | Full Integration            | Acts as a reverse proxy for Reor’s Node.js backend.                       |
+| Hugging Face Spaces       | Full Integration            | Docker + port forwarding; no code changes to Reor’s UI.                  |
 
+---
+### **4.3 Tests per Component**
+#### **LLM Service**
+- **Test 1**: Verify BLABLADOR API calls return valid completions.
+  - **Input**: `{"model": "alias-large", "messages": [{"role": "user", "content": "Summarize my notes on AI ethics"}]}`
+  - **Success**: No `401`/`429` errors; response includes `choices[0].message.content`.
+- **Test 2**: Test RAG with retrieved context.
+  - **Input**: Query + 3 retrieved notes (from LanceDB).
+  - **Success**: Response cites specific notes in the corpus.
+- **Test 3**: Validate embeddings.
+  - **Input**: `["test note text"]` → BLABLADOR’s `/embeddings` endpoint.
+  - **Success**: Returns a 1536-dim vector (match BLABLADOR’s model).
+
+#### **API Proxy**
+- **Test 1**: Forward `/notes` to Reor.
+  - **Request**: `GET https://hf.space/notes` → Proxy → `GET http://localhost:7860/notes`.
+  - **Success**: Returns list of notes (200 status).
+- **Test 2**: Authenticate API key.
+  - **Request**: `POST /qa` without `Authorization` header.
+  - **Success**: Returns `401 Unauthorized`.
+- **Test 3**: Validate Q&A endpoint.
+  - **Request**: `POST /qa` with `{"query": "Explain vector search"}`.
+  - **Success**: Returns RAG response using `alias-large`.
+
+#### **Docker Deployment**
+- **Test 1**: Local build + run.
+  - **Command**: `docker run -p 7860:7860 reor-hf`.
+  - **Success**: `curl http://localhost:7860/notes` returns notes.
+- **Test 2**: Proxy routes work.
+  - **Command**: `curl http://localhost:7860/search?q=AI`.
+  - **Success**: Returns semantic search results.
+
+#### **Hugging Face Space**
+- **Test 1**: Space URL accessibility.
+  - **Action**: Visit `harvesthealth-magnetic-ui.hf.space`.
+  - **Success**: UI loads (or Gradio interface if used).
+- **Test 2**: External API calls.
+  - **Request**: `curl -H "Authorization: Bearer KEY" https://hf.space/qa -d '{"query": "test"}'`.
+  - **Success**: Returns `alias-large` response.
+
+---
 ### **5. Full Pipeline Test**
-**Input**:
-- User uploads 3 markdown notes (`note1.md`, `note2.md`, `note3.md`).
-- Notes contain overlapping topics (e.g., "AI", "knowledge management").
-- User asks: `"Explain the concept of RAG in my notes."`
+#### **Test Description**
+Simulate a user workflow: **Add a note → Query with RAG → Retrieve related notes**.
 
-**Expected Output**:
-1. **Backend**:
-   - Chunks notes → embeds with `BLABLADOR` → stores in LanceDB.
-   - Retrieves top-2 relevant notes via semantic search.
-   - Passes context + prompt to `BLABLADOR_API_KEY`:
-     ```json
-     {
-       "model": "alias-large",
-       "messages": [
-         {"role": "system", "content": "You are an expert on knowledge management."},
-         {"role": "user", "content": "Explain RAG using context: [note1_embed] [note2_embed]"}
-       ]
-     }
-     ```
-2. **Frontend**:
-   - Gradio UI displays:
-     - **Chat response**: Concise RAG-based explanation.
-     - **Sidebar**: `note1.md` and `note2.md` (highlighted as sources).
-
-**Mock Input Data** (for testing):
-```markdown
-# note1.md
-## RAG in AI
-Retrieval-Augmented Generation combines **search** and **LLMs**.
-Steps:
-1. Retrieve relevant documents.
-2. Pass to LLM for response.
-```
-
-```markdown
-# note2.md
-## Knowledge Management
-Tools like **Obsidian** and **Reor** use vectors for semantic links.
-```
-
-**Success Criteria**:
-- API response contains **"retrieve"** and **"generate"** in answer.
-- Sidebar shows `note1.md` and `note2.md` with confidence scores > 0.9.
-
----
-
-### **6. Task: API Endpoints**
-**FastAPI Endpoints** (to be tested via Hugging Face Space):
-| **Endpoint**       | **Method** | **Description**                                                                 | **Request Example**                                                                 | **Expected Response**                                                                 |
-|--------------------|------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| `/chat`            | POST       | RAG-based Q&A.                                                                | `{"prompt": "Explain RAG"}`, `{"notes": ["note1.md"]}`                          | `{"response": "RAG combines retrieval..."}`                                         |
-| `/search`          | GET        | Semantic search for notes.                                                    | `?query="AI"`                                                                       | `[{"id": "note1", "title": "RAG in AI", "score": 0.99}]`                            |
-| `/notes`           | POST       | Create/update a note.                                                          | `{"content": "# Test", "filename": "test.md"}`                                    | `{"status": "success"}`                                                              |
-| `/notes/{id}`      | GET        | Retrieve a note by ID.                                                         | `/notes/1`                                                                         | `{"content": "# Test", "filename": "test.md"}`                                      |
-| `/embeddings`      | POST       | Add embeddings to LanceDB.                                                     | `{"text": "RAG is...", "note_id": "1"}`                                           | `{"status": "inserted"}`                                                             |
-
-**H
+#### **Mock-Up Input Data**
+1. **Notes Directory**:
+   ```
+   /notes/
+     note1.md: "AI ethics emphasizes fairness."
+     note2.md: "Bias in LLMs is a key concern."
+   ```
+2. **Test Steps**:
+   - **Step 1**: Index notes via LanceDB (done on startup).
+   - **Step 2**: User asks: `"What are the risks of biased AI?"`
+     - **API Call**: `POST /qa` → Proxy → BLABLADOR API + LanceDB retrieval.
+   - **Step 3**: System responds
