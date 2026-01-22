@@ -1,183 +1,220 @@
 # Project Context
 
 ## Project Description
-**Project Description**
+### **Project Description**
 
-**Vision**  
-Deploy the **reor** project as a FastAPI-based backend on Hugging Face Spaces, focusing exclusively on the backend with no frontend. The backend will expose AI inference capabilities via API endpoints, with AI settings dynamically configurable through a dedicated `/configure` endpoint. The Helmholtz-Blabladot API will remain the central AI integration, with logging implemented to alert on missing `BLABLADOR_API_KEY`.
+#### **Vision**
+Deploy a Gradio-based Hugging Face Space app that integrates with an external OpenAI-compatible LLM endpoint (`helmholtz-blablador.fz-juelich.de/v1`) using the `alias-large` model. The app must maintain its existing language logic while adapting the deployment strategy to expose backend APIs externally for remote management and interaction. The deployment should leverage Docker, with the interface accessible via port `7860`, and APIs forwarded through a proxy to `https://harvesthealth-magnetic-ui.hf.space`.
 
-**Concrete Goals**  
-1. **Backend-Only Deployment**: Deploy only the backend component using FastAPI on Hugging Face Spaces.  
-2. **Dynamic AI Configuration**: Expose an API endpoint (`/configure`) to update AI settings (e.g., model alias, endpoint URL) from outside the Hugging Face Space.  
-3. **AI Integration Preservation**: Maintain integration with the Helmholtz-Blabladot API (OpenAI-compatible endpoint) for AI inference.  
-4. **Error Logging**: Log an error at startup and during API requests if `BLABLADOR_API_KEY` is not set.  
-5. **API Endpoint Exposure**: Expose inference endpoints (e.g., `/generate`) to allow external AI requests.  
+#### **Concrete Goals**
+1. **LLM Integration**: Replace the existing LLM backend with calls to `https://api.helmholtz-blablador.fz-juelich.de/v1` using the `alias-large` model.
+2. **Secure API Key Handling**: Load the `BLABLADOR_API_KEY` from Hugging Face Space environment variables.
+3. **External API Exposure**: Expose backend APIs via `https://harvesthealth-magnetic-ui.hf.space/api` using a reverse proxy (e.g., Nginx or Caddy) within the Docker container.
+4. **UI Accessibility**: Serve the Gradio interface on port `7860`, ensuring it is accessible via the Hugging Face Space URL.
+5. **Deployment Strategy**: Use Docker for consistent deployment, with Gradio as the frontend and a lightweight proxy (FastAPI or Nginx) for API routing.
 
-**Future Use Cases**  
-- **External AI Service Integration**: Allow third-party applications to use the reor backend for AI generation by calling `/generate` with dynamic model settings.  
-- **Configurable AI Workflows**: Enable developers to switch between different AI models or endpoints at runtime via `/configure`.  
-- **Monitoring and Debugging**: Use logs to monitor missing API keys and track inference behavior.  
-- **Hybrid Deployments**: Use the backend as a microservice in larger AI systems, with frontend components developed separately.  
+#### **Future Use Cases**
+- Remote management of the app via RESTful APIs.
+- Integration with third-party tools or workflows that require programmatic access to the LLM.
+- Scalable deployment for AI-powered language tasks (e.g., chat, summarization, translation) using the external LLM endpoint.
+- Potential extension to support multiple models or endpoints via configuration.
 
-**Potential Integrations**  
-- **Hugging Face Spaces Secrets**: Store `BLABLADOR_API_KEY` securely as a Space secret to avoid hardcoding.  
-- **Containerized Deployment**: Use a `Containerfile` to define the FastAPI environment, ensuring compatibility with Hugging Face’s infrastructure.  
-- **API Gateway**: Integrate with external API gateways or serverless platforms (e.g., AWS API Gateway, Google Cloud Endpoints) for scalable access.  
-- **Monitoring Tools**: Integrate with logging services (e.g., Sentry, Datadog) to track errors and performance.  
-- **Frontend Integration**: Future frontend (React/Vite) can be connected via the exposed FastAPI endpoints for a full-stack deployment.
+#### **Potential Integrations**
+- **Hugging Face Spaces**: For hosting and managing the app with environment variables and Docker.
+- **FastAPI or Nginx**: As a reverse proxy to forward external API requests to the LLM endpoint.
+- **Gradio**: For building and serving the interactive UI.
+- **External LLM Endpoint**: `https://api.helmholtz-blablador.fz-juelich.de/v1` with `alias-large` model.
+- **Docker**: For containerized deployment, ensuring reproducibility and portability.
+- **Caddy or Nginx**: For handling HTTPS and routing traffic to the appropriate services.
 
 ## Tasks and Tests
 1. Estimation of Project Scope from 1-10 and with a presentation of the core parts  
-**Scope: 7/10**  
-The project involves deploying a backend-only version of the `reor` application on Hugging Face Spaces, with FastAPI as the API layer. The core parts include:  
-- Extracting AI logic from frontend files (`defaultLLMs.ts`, `utils.ts`) to build a standalone backend.  
-- Creating FastAPI endpoints for AI configuration (`/configure`) and inference (`/generate`).  
-- Logging errors for missing `BLABLADOR_API_KEY`.  
-- Deploying the backend on Hugging Face Spaces with environment variable handling.  
-The complexity arises from the lack of an existing backend and the need to reverse-engineer AI integration from frontend code.
+Project scope: 8/10  
+Core parts:  
+- Backend logic adaptation to use OpenAI-compatible LLM endpoint at `https://api.helmholtz-blablador.fz-juelich.de/v1` with model `alias-large`  
+- Secure retrieval of `BLABLADOR_API_KEY` from Hugging Face Space environment variables  
+- Deployment on Hugging Face Space with exposed API endpoints for external connectivity  
+- Implementation of a forwarding system to expose backend APIs externally via `https://harvesthealth-magnetic-ui.hf.space`  
+- Preservation of original app language logic while replacing LLM backend  
+- Use of Docker-based deployment with Gradio (preferred) or Streamlit frontend and FastAPI/Nginx for API exposure on port 7860  
 
 2. Project Description w/ vision for the project, concrete goals what it should be capable of, and future use cases, and future integrations into other projects  
-**Vision**: Deploy a lightweight, backend-only FastAPI service for the `reor` project on Hugging Face Spaces, enabling external AI configuration and inference via API endpoints.  
-**Concrete Goals**:  
-- Expose `/configure` endpoint to dynamically set AI parameters (model, endpoint).  
-- Expose `/generate` endpoint to trigger AI inference via Helmholtz-Blabladot API.  
-- Log errors if `BLABLADOR_API_KEY` is missing.  
-- Run as a standalone backend without frontend dependencies.  
-**Future Use Cases**:  
-- Integration into other AI workflow tools or dashboards.  
-- Use as a microservice for AI inference in larger systems.  
-**Future Integrations**:  
-- Integration with Hugging Face Inference API for model serving.  
-- Possible extension to support multiple AI providers (e.g., OpenAI, Anthropic) via config.
+Vision: Deploy a functional, AI-powered application on Hugging Face Spaces that maintains its core language interface while integrating securely with an external OpenAI-compatible LLM service. The app should be remotely manageable via exposed API endpoints.  
+Concrete goals:  
+- App must route all LLM queries through `helmholtz-blablador.fz-juelich.de/v1` using `alias-large` model  
+- `BLABLADOR_API_KEY` must be loaded securely from Hugging Face Space environment  
+- Full backend API functionality must be accessible externally via `https://harvesthealth-magnetic-ui.hf.space/api`  
+- UI must remain functional on port 7860 via Gradio  
+- Application must run in a Docker container deployed on Hugging Face Space  
+Future use cases:  
+- Remote orchestration of the app via API calls from external dashboards or agents  
+- Integration into larger AI workflows (e.g., healthcare NLP pipelines)  
+- Multi-model routing based on input type or user role  
+Future integrations:  
+- Connection to internal HelmHoltz AI governance tools  
+- Logging and monitoring via centralized AI observability platforms  
 
 3. Other Projects or api endpoints that will be integrated into the project to act as part components to the overall project  
-- **Helmholtz-Blabladot API**: Primary AI inference endpoint (`https://api.helmholtz-blablador.fz-juelich.de/v1`).  
-- **Hugging Face Spaces**: Hosting platform for the FastAPI backend.  
-- **FastAPI**: Framework for building and exposing API endpoints.  
-- **Python Logging**: For error reporting (missing API key).  
+- OpenAI-compatible API endpoint: `https://api.helmholtz-blablador.fz-juelich.de/v1` (used for LLM inference)  
+- Hugging Face Spaces platform (hosting environment with secret management)  
+- Gradio (UI framework with built-in API exposure capability)  
+- FastAPI (for custom backend API routing and proxying if needed)  
+- Nginx or Caddy (for reverse proxying and external API exposure in Docker setup)  
 
 4. A list of components that need to be built and how they interact  
-- **FastAPI Backend**: Main component exposing `/configure`, `/generate`, and `/health` endpoints.  
-- **AI Configuration Manager**: In-memory storage for dynamic AI settings (model, endpoint).  
-- **Helmholtz-Blabladot Client**: Wrapper for calling the external AI API with configured settings.  
-- **Startup Validator**: Checks for `BLABLADOR_API_KEY` at startup.  
-- **Logger**: Handles error logging for missing keys and inference issues.  
+- **Gradio UI Component**: Serves the user interface on port 7860; sends LLM requests to the backend proxy  
+- **FastAPI Proxy Component**: Receives internal and external API calls; forwards them to the LLM endpoint with proper authentication  
+- **Environment Manager**: Loads `BLABLADOR_API_KEY` from `os.environ` and injects it into API headers  
+- **Docker Container Layer**: Bundles Gradio, FastAPI, and proxy server; exposes port 7860 and `/api` routes  
+- **Reverse Proxy (Nginx/Caddy)**: Forwards external traffic from `https://harvesthealth-magnetic-ui.hf.space` to internal services (port 7860 and `/api`)  
+- **API Exposure Layer**: Ensures all backend functions are reachable via HTTP endpoints for external management  
 
-**Interactions**:  
-- User → `/configure` → Updates AI config → Used in `/generate` → Calls Helmholtz-Blabladot API → Returns result.  
-- Startup → Validator checks `BLABLADOR_API_KEY` → Logs error if missing.  
+Interaction flow:  
+External request → Hugging Face Space → Nginx/Caddy → routes `/` to Gradio (port 7860), `/api/*` to FastAPI → FastAPI uses `BLABLADOR_API_KEY` to call `helmholtz-blablador.fz-juelich.de/v1` → response returned through chain  
 
-4.2. A list of subtasks per components. For new coding this means some architecture protocol for security, functionality, and interaction endpoints to other components  
-**FastAPI Backend**:  
-- Build FastAPI app with `uvicorn` server.  
-- Define routes: `/configure` (POST), `/generate` (POST), `/health` (GET).  
-- Use `pydantic` models for request validation.  
-- Secure endpoints: No authentication required (per project scope).  
+4.2. A list of subtasks per components  
+**Gradio UI Component**  
+- Subtask: Clone or recreate UI logic from original (assumed) reor app  
+- Subtask: Replace local LLM calls with HTTP requests to internal FastAPI endpoint (e.g., `http://localhost:8000/llm`)  
+- Subtask: Ensure prompt formatting and language logic are preserved  
+- Subtask: Confirm Gradio generates `/api` endpoints for all interface functions  
 
-**AI Configuration Manager**:  
-- Use global dictionary (`ai_config`) for settings.  
-- Allow dynamic updates via `/configure`.  
-- Validate input (e.g., model must be in allowed list).  
+**FastAPI Proxy Component**  
+- Subtask: Set up FastAPI app with `/v1/chat/completions` and other required LLM endpoints  
+- Subtask: Implement secure header injection using `os.environ["BLABLADOR_API_KEY"]`  
+- Subtask: Validate incoming request structure and forward to `https://api.helmholtz-blablador.fz-juelich.de/v1`  
+- Subtask: Return responses with correct status codes and JSON structure  
 
-**Helmholtz-Blabladot Client**:  
-- Clone logic from `utils.ts` to Python.  
-- Use `requests` or `httpx` to call external API.  
-- Include `BLABLADOR_API_KEY` in headers.  
-- Handle errors (timeout, 4xx/5xx).  
+**Environment Manager**  
+- Subtask: Implement secure environment variable loading for `BLABLADOR_API_KEY`  
+- Subtask: Add fallback or error handling if key is missing  
+- Subtask: Ensure key is never logged or exposed in responses  
 
-**Startup Validator**:  
-- On app startup, check `os.getenv("BLABLADOR_API_KEY")`.  
-- If missing, log error using `logging.error()`.  
+**Docker Container Layer**  
+- Subtask: Create `Dockerfile` installing Python, Gradio, FastAPI, Uvicorn, and Nginx/Caddy  
+- Subtask: Define startup script to launch Nginx, Uvicorn (FastAPI), and Gradio  
+- Subtask: Expose port 7860 and configure `/api` path routing  
+- Subtask: Set working directory and copy app files  
 
-**Logger**:  
-- Use Python `logging` module.  
-- Set log level to `INFO` or `DEBUG`.  
-- Output logs to stdout (for Hugging Face Space visibility).  
+**Reverse Proxy (Nginx/Caddy)**  
+- Subtask: Configure Nginx/Caddy to serve Gradio on `/` and FastAPI on `/api`  
+- Subtask: Forward `https://harvesthealth-magnetic-ui.hf.space` to internal services  
+- Subtask: Ensure WebSocket support for Gradio streaming  
 
-**External Code Integration**:  
-- The AI logic in `defaultLLMs.ts` and `utils.ts` must be mirrored in Python.  
-- No direct API integration possible — must re-implement logic.  
-- Full code should be mirrored for functionality.  
+**API Exposure Layer**  
+- Subtask: Document all available API endpoints (from Gradio and FastAPI)  
+- Subtask: Ensure CORS is configured to allow external domains if needed  
+- Subtask: Implement health check endpoint `/health`  
 
 4.3. A list of tests to be run per component to check it's working, without writing code, but describing the functionality that should be working and define a success  
-**FastAPI Backend**:  
-- Test `/health`: Should return `{"status": "OK"}`. Success: 200 status, correct JSON.  
-- Test `/configure`: Send `{"model": "small"}` → Should return `{"status": "updated"}`. Success: Config updated.  
-- Test `/generate`: Send prompt → Should return AI response. Success: Valid JSON with `result` field.  
+**Gradio UI Component**  
+- Test: Load UI at `https://harvesthealth-magnetic-ui.hf.space`  
+- Success: Page renders, input fields visible, chat works when submitted  
+- Test: Submit test prompt "Hello, how are you?"  
+- Success: Response is received via streaming or full message from LLM backend  
 
-**AI Configuration Manager**:  
-- Update config via `/configure` → Verify config changes persist for next `/generate`. Success: Inference uses new model.  
+**FastAPI Proxy Component**  
+- Test: Send POST request to `https://harvesthealth-magnetic-ui.hf.space/api/llm` with chat payload  
+- Success: Returns 200 OK and valid LLM response from `helmholtz-blablador`  
+- Test: Send malformed request  
+- Success: Returns 400 Bad Request with error message  
 
-**Helmholtz-Blabladot Client**:  
-- Call with valid key → Should return AI response. Success: Non-error response from Helmholtz.  
-- Call with invalid key → Should return 401. Success: Error handling works.  
+**Environment Manager**  
+- Test: Deploy without `BLABLADOR_API_KEY` set  
+- Success: App fails to start or logs clear error, does not expose key  
+- Test: Deploy with correct key  
+- Success: LLM requests succeed, key used in headers without logging  
 
-**Startup Validator**:  
-- Deploy without `BLABLADOR_API_KEY` → Logs should show error. Success: Error visible in HF logs.  
+**Docker Container Layer**  
+- Test: Run `docker-compose up` locally  
+- Success: Services start, port 7860 accessible, no crashes  
+- Test: Check logs for startup completion  
+- Success: Logs show Gradio running on 7860, FastAPI on 8000, Nginx active  
 
-5. Task of Full Pipeline Test: A test description for the full interaction from input to output, without writing code, but determining how success would look like, and write some mock-up input data to use for testing  
-**Test Description**:  
-1. Deploy the FastAPI backend on Hugging Face Spaces.  
-2. Send a POST to `/configure` with `{"model": "small", "endpoint": "https://api.helmholtz-blablador.fz-juelich.de/v1"}`.  
-3. Send a POST to `/generate` with `{"prompt": "Hello, how are you?"}`.  
-4. Check response and logs.  
+**Reverse Proxy (Nginx/Caddy)**  
+- Test: Access `https://harvesthealth-magnetic-ui.hf.space`  
+- Success: Serves Gradio UI  
+- Test: Access `https://harvesthealth-magnetic-ui.hf.space/api/health`  
+- Success: Returns 200 from FastAPI  
 
-**Mock Input Data**:  
-- `/configure`: `{"model": "small", "endpoint": "https://api.helmholtz-blablador.fz-juelich.de/v1"}`  
-- `/generate`: `{"prompt": "Hello, how are you?"}`  
+**API Exposure Layer**  
+- Test: Call `/api/predict` (Gradio) and `/api/llm` (FastAPI) externally  
+- Success: Both return correct responses  
+- Test: Use curl or Postman to simulate external management  
+- Success: App responds to API commands without UI interaction  
 
-**Success Criteria**:  
-- `/configure` returns `{"status": "updated"}`.  
-- `/generate` returns a JSON with `result` containing AI response.  
-- Logs show no error for missing key (if key is set).  
+5. Task of Full Pipeline Test: A test description for the full interaction from input to output, without writing code, but determining hw success would look like, and write some mock-up input data to use for testing  
+Task: Simulate end-to-end user and API interaction  
+Mock-up input data:  
+```json
+{
+  "messages": [
+    {"role": "user", "content": "Explain quantum computing in simple terms."}
+  ],
+  "model": "alias-large"
+}
+```  
+Test flow:  
+1. User submits message via Gradio UI  
+2. Frontend sends request to backend (FastAPI)  
+3. FastAPI adds `Authorization: Bearer <BLABLADOR_API_KEY>` and forwards to `helmholtz-blablador.fz-juelich.de/v1`  
+4. Response is streamed back to Gradio UI  
+5. Separately, external API call sent to `/api/llm` with same payload  
+6. Same response received via API  
+Success criteria:  
+- UI returns LLM response correctly  
+- API returns same response with 200 status  
+- No authentication leaks or errors in logs  
+- Full round-trip time under 10 seconds  
 
-6. Task of API: Based on API logs documentation, add api endpoints for all functionalities to be tested later via api request to the app, e.g. gradio endpoint or fast api. Remember that the full application will be hosted on huggingface based on the parameters provided. fastapis need to be forwarded to the url based on according documentation. with a reference to the deployment/huggingface_interactions file.  
-**API Endpoints**:  
-- `/configure` (POST) → Accepts JSON with AI settings → Updates config → Returns status.  
-- `/generate` (POST) → Accepts JSON with prompt → Calls Helmholtz API → Returns AI response.  
-- `/health` (GET) → Returns `{"status": "OK"}`.  
-
-**Hugging Face Deployment**:  
-- Use `Containerfile` to run FastAPI with `uvicorn`.  
-- Set `BLABLADOR_API_KEY` as a Space secret.  
-- Forward FastAPI endpoints via Hugging Face’s `/api` route (e.g., `https://<space-name>.app/health`).  
-- Reference: `deployment/huggingface_interactions.md` for URL forwarding and secret management.  
-
-7. Task of Monitoring: Monitoring of Deployment Process and editing files based on log monitoring until it is successfully deployed and running in its huggingface space, and all functionality is working.  
-**Monitoring Steps**:  
-1. Deploy the FastAPI app on Hugging Face Spaces.  
-2. Monitor logs for:  
-   - Startup errors (missing `BLABLADOR_API_KEY`).  
-   - 500 errors in `/generate` or `/configure`.  
-   - Successful inference responses.  
-3. If errors occur:  
-   - Check config for correct key.  
-   - Validate API endpoint URL.  
-   - Fix code logic (e.g., error handling).  
-4. Test all endpoints with mock data.  
-5. Confirm all functionality works → Mark deployment successful.
+6. Task of API: Based on API logs documentation, add api endpoints for all funct
 
 ## GitHub Repos
 
 
 ## Functionality Expectations
-- Deploy only the backend of the reor application on Hugging Face Spaces using FastAPI.
-- Expose the backend via FastAPI endpoints, with no frontend.
-- Preserve AI integration with the Helmholtz-Blabladot API (OpenAI-compatible endpoint).
-- Allow dynamic configuration of AI settings (e.g., model alias, endpoint URL) via a dedicated API endpoint (e.g., `/configure`).
-- Log an error if the `BLABLADOR_API_KEY` environment variable is missing.
-- Ensure AI inference is routed through the Helmholtz-Blabladot API using the dynamically configured settings.
-- Deploy the FastAPI service within a container (using a `Containerfile` or equivalent) compatible with Hugging Face Spaces.
-- Use Hugging Face Space secrets to securely store sensitive data like `BLABLADOR_API_KEY`.
-- Provide endpoints such as `/configure` (POST) to update AI settings and `/generate` (POST) to trigger AI inference.
-- Implement logging for errors and inference activity.
-- Ensure the application runs within Hugging Face Spaces constraints (e.g., no persistent storage, GPU limitations if applicable).
+### **Functionality Expectations of the Application Once Deployed**
+
+1. **LLM Endpoint Integration**  
+   - The application must use the OpenAI-compatible LLM endpoint at `https://api.helmholtz-blablador.fz-juelich.de/v1` with model alias `large`.  
+   - The `BLABLADOR_API_KEY` must be securely retrieved from Hugging Face Space environment variables.
+
+2. **Backend API Exposure**  
+   - The backend APIs must be exposed externally via the URL `https://harvesthealth-magnetic-ui.hf.space` to allow remote management and interaction.  
+   - A forwarding/proxy system (e.g., Nginx or Caddy) must be implemented to route external API traffic to the backend.
+
+3. **UI Interface**  
+   - The frontend interface must be accessible on port `7860` (default for Gradio/Streamlit).  
+   - The UI should retain the original language logic and functionality of the source application.
+
+4. **Deployment Strategy**  
+   - The application must be deployed using Docker on Hugging Face Spaces.  
+   - The deployment should leverage Gradio or Streamlit for the UI, with FastAPI or similar for backend API proxying.
+
+5. **Security & Configuration**  
+   - The `BLABLADOR_API_KEY` must be injected securely via Hugging Face Space secrets and not hardcoded.  
+   - The application must handle authentication and authorization for API endpoints as needed.
+
+6. **External Accessibility**  
+   - The deployed app must be reachable from outside the Hugging Face Space environment via the provided URL.  
+   - The `/api` endpoint must be functional and accessible for external clients.
+
+7. **AI-Centric Features**  
+   - The core AI functionality (e.g., language processing, prompt handling) must be preserved and optimized for the new LLM endpoint.  
+   - The app should support real-time interaction with the LLM via the exposed APIs.
+
+8. **Testing & Validation**  
+   - The application must be tested locally and in the Hugging Face Space environment to confirm:  
+     - Successful LLM calls using the external endpoint.  
+     - Correct loading of environment variables.  
+     - Proper API forwarding and external accessibility.  
+     - UI responsiveness and functionality.
 
 ## API Endpoints
-- **`/configure` (POST)**: Allows external clients to dynamically update AI settings (e.g., model alias, endpoint URL) via a JSON payload.  
-- **`/generate` (POST)**: Triggers AI inference using the Helmholtz-Blabladot API with the currently configured settings.  
-- **`/health` (GET)**: Provides a liveness probe to verify the backend is running and responsive.
+- **`/api` endpoint**: Exposes backend APIs for external management and interaction with the app. Purpose: Enable remote control and integration with the deployed application via HTTP requests.
+- **`/v1/chat/completions` (proxied)**: Forwarded to `https://api.helmholtz-blablador.fz-juelich.de/v1` using the `BLABLADOR_API_KEY` from environment. Purpose: Serve AI-generated responses using the OpenAI-compatible LLM endpoint.
+- **Port 7860**: Default Gradio interface port. Purpose: Host the frontend UI accessible at `https://harvesthealth-magnetic-ui.hf.space` for user interaction.
 
 ## HF Deployment Data
 Profile: harvesthealth
-Space: magentic-ui
+Space: magnetic-ui

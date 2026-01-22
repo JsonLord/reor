@@ -1,11 +1,36 @@
-- Deploy only the backend of the reor application on Hugging Face Spaces using FastAPI.
-- Expose the backend via FastAPI endpoints, with no frontend.
-- Preserve AI integration with the Helmholtz-Blabladot API (OpenAI-compatible endpoint).
-- Allow dynamic configuration of AI settings (e.g., model alias, endpoint URL) via a dedicated API endpoint (e.g., `/configure`).
-- Log an error if the `BLABLADOR_API_KEY` environment variable is missing.
-- Ensure AI inference is routed through the Helmholtz-Blabladot API using the dynamically configured settings.
-- Deploy the FastAPI service within a container (using a `Containerfile` or equivalent) compatible with Hugging Face Spaces.
-- Use Hugging Face Space secrets to securely store sensitive data like `BLABLADOR_API_KEY`.
-- Provide endpoints such as `/configure` (POST) to update AI settings and `/generate` (POST) to trigger AI inference.
-- Implement logging for errors and inference activity.
-- Ensure the application runs within Hugging Face Spaces constraints (e.g., no persistent storage, GPU limitations if applicable).
+### **Functionality Expectations of the Application Once Deployed**
+
+1. **LLM Endpoint Integration**  
+   - The application must use the OpenAI-compatible LLM endpoint at `https://api.helmholtz-blablador.fz-juelich.de/v1` with model alias `large`.  
+   - The `BLABLADOR_API_KEY` must be securely retrieved from Hugging Face Space environment variables.
+
+2. **Backend API Exposure**  
+   - The backend APIs must be exposed externally via the URL `https://harvesthealth-magnetic-ui.hf.space` to allow remote management and interaction.  
+   - A forwarding/proxy system (e.g., Nginx or Caddy) must be implemented to route external API traffic to the backend.
+
+3. **UI Interface**  
+   - The frontend interface must be accessible on port `7860` (default for Gradio/Streamlit).  
+   - The UI should retain the original language logic and functionality of the source application.
+
+4. **Deployment Strategy**  
+   - The application must be deployed using Docker on Hugging Face Spaces.  
+   - The deployment should leverage Gradio or Streamlit for the UI, with FastAPI or similar for backend API proxying.
+
+5. **Security & Configuration**  
+   - The `BLABLADOR_API_KEY` must be injected securely via Hugging Face Space secrets and not hardcoded.  
+   - The application must handle authentication and authorization for API endpoints as needed.
+
+6. **External Accessibility**  
+   - The deployed app must be reachable from outside the Hugging Face Space environment via the provided URL.  
+   - The `/api` endpoint must be functional and accessible for external clients.
+
+7. **AI-Centric Features**  
+   - The core AI functionality (e.g., language processing, prompt handling) must be preserved and optimized for the new LLM endpoint.  
+   - The app should support real-time interaction with the LLM via the exposed APIs.
+
+8. **Testing & Validation**  
+   - The application must be tested locally and in the Hugging Face Space environment to confirm:  
+     - Successful LLM calls using the external endpoint.  
+     - Correct loading of environment variables.  
+     - Proper API forwarding and external accessibility.  
+     - UI responsiveness and functionality.

@@ -1,4 +1,4 @@
-HF_PROFILE_ID=reorproject
-HF_SPACE_NAME=None
+HF_PROFILE_ID=harvesthealth-magnetic-ui
+HF_SPACE_NAME=harvesthealth-magnetic-ui
 HF_SDK=docker
 HF_DEPLOY_ENABLED=True
