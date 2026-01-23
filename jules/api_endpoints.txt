@@ -1,0 +1,26 @@
+```json
+{
+  "api_endpoints": [
+    {
+      "endpoint": "/api/v1/notes",
+      "method": ["GET", "POST", "PUT", "DELETE"],
+      "description": "Manage notes (CRUD). Supports markdown + frontmatter."
+    },
+    {
+      "endpoint": "/api/v1/qa",
+      "method": "POST",
+      "description": "LLM-powered Q&A on notes (RAG)."
+    },
+    {
+      "endpoint": "/api/v1/embeddings",
+      "method": "POST",
+      "description": "Generate embeddings for text chunks (LanceDB)."
+    },
+    {
+      "endpoint": "/api/v1/similar",
+      "method": "POST",
+      "description": "Retrieve semantically similar notes."
+    }
+  ]
+}
+```

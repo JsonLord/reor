@@ -1,0 +1,5 @@
+HF_PROFILE_ID=The Huggingface **Namespace/Profile name** (username) for deployment would be:
+**`harvesthealth`** (from the URL `https://harvesthealth-magnetic-ui.hf.space`).
+HF_SPACE_NAME=`harvesthealth-magnetic-ui`
+HF_SDK=docker
+HF_DEPLOY_ENABLED=True

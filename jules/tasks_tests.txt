@@ -1,0 +1,110 @@
+### **1. Estimation of Project Scope: 9/10**
+**Core Parts:**
+- **Backend (FastAPI)** – OpenAI-compatible LLM integration, LanceDB vector storage, RAG workflows.
+- **Frontend (Gradio/React)** – Obsidian-like editor, related notes sidebar, UI for Q&A mode.
+- **Hugging Face Deployment** – Dockerization, reverse proxy setup, API gateway (`/api/v1`).
+- **API Layer** – CRUD for notes, embeddings, semantic search, and LLM Q&A.
+- **Security** – Environment variable-based API key management, input validation, CORS restrictions.
+
+---
+
+### **2. Project Description**
+**Vision:**
+Reor is a **privacy-first, locally hosted AI knowledge management system** that augments note-taking with semantic search, RAG-based Q&A, and vector similarity. The Hugging Face deployment will expose its core AI features (RAG, embeddings, LLM inference) via an OpenAI-compatible API while preserving the app’s local-first architecture.
+
+**Concrete Goals:**
+- Deploy **Reor on Hugging Face Spaces** with `BLABLADOR_API_KEY` integration for LLM inference.
+- Expose **FastAPI backend** via `/api/v1/*` endpoints (notes, Q&A, embeddings).
+- Maintain **Gradio UI** (port `7860`) for user interaction, with optional React/Tailwind upgrades.
+- Forward external traffic via **NGINX reverse proxy** to `harvesthealth-magnetic-ui.hf.space`.
+
+**Future Use Cases:**
+- **Enterprise Knowledge Bases** – Secure, self-hosted Q&A for internal documentation.
+- **Research Collaboration** – Shared vector databases with controlled API access.
+- **Educational Tools** – Semantic note-linking for students (e.g., linking lecture slides to study notes).
+
+**Future Integrations:**
+- **Zettlr/Obsidian Plugins** – Sync notes between Reor and existing markdown editors.
+- **Slack/MS Teams Bots** – Trigger Q&A via chat platforms.
+- **Custom Model Hosting** – Allow users to deploy fine-tuned LLMs alongside BLABLADOR.
+
+---
+
+### **3. External Projects/API Endpoints**
+| **Component**               | **Integration Type**       | **API/Repo**                                                                 | **Notes**                                                                                     |
+|-----------------------------|----------------------------|------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| **LLM API (BLABLADOR)**     | OpenAI-Compatible         | `https://api.helmholtz-blablador.fz-juelich.de/v1`                          | Model: `large`; Key: `BLABLADOR_API_KEY` (from HF Space secrets).                            |
+| **Vector DB (LanceDB)**     | Local Storage              | [`lancedb/lancedb`](https://github.com/lancedb/lancedb)                      | Supports cosine similarity; no cloud dependency.                                             |
+| **Markdown Processing**     | Frontend                  | [`markdown-it`](https://github.com/markdown-it/markdown-it)                 | For parsing Obsidian-like frontmatter.                                                       |
+| **FastAPI**                 | Backend Framework          | [`fastapi`](https://github.com/tiangolo/fastapi)                            | For `/api/v1/*` endpoints; uses Uvicorn for ASGI.                                            |
+| **Docker**                  | Deployment                 | Official images + HF Spaces SDK                                            | Multi-stage build: backend (Python) + frontend (Gradio).                                    |
+| **NGINX**                   | Reverse Proxy              | Standard                                                                      | Forward `harvesthealth-magnetic-ui.hf.space` → `localhost:7860`.                            |
+
+---
+
+### **4. Components & Subtasks**
+#### **4.1. Component List**
+1. **Backend (FastAPI)**
+   - Handles `/api/v1/notes`, `/api/v1/qa`, `/api/v1/embeddings`, `/api/v1/similar`.
+   - Integrates BLABLADOR API and LanceDB.
+   - **Interaction**: Frontend (Gradio) ↔ Backend (FastAPI) ↔ LLM/API → User.
+
+2. **Frontend (Gradio)**
+   - Obsidian-like editor + sidebar for related notes.
+   - **Interaction**: Renders UI; sends/receives API calls to FastAPI.
+
+3. **Vector Database (LanceDB)**
+   - Stores note chunks as embeddings.
+   - **Interaction**: Backend queries embeddings for semantic search/RAG.
+
+4. **Deployment (Docker + Hugging Face)**
+   - Dockerfile for multi-stage build (Python + Gradio).
+   - NGINX reverse proxy for external URL.
+   - **Interaction**: `harvesthealth-magnetic-ui.hf.space` → `localhost:7860`.
+
+---
+
+#### **4.2. Subtasks per Component**
+| **Component**       | **Subtasks**                                                                                                                                                                                                                                                                 |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Backend**       keep original but:  | - **T1.1**: use new llm endpoint`POST /api/v1/chat/completions` (BLABLADOR API).                                                                                                                                                                                        |
+|                     | - **T1.2**: use `BLABLADOR_API_KEY` to `.env` (Hugging Face Space secrets).                                                                                                                                                                                   |
+|                     | - **T1.3**: Integrate LanceDB for embedding storage.                                                                                                                                                                                                   |
+|                     | - **T1.4**: Build CRUD endpoints (`/api/v1/notes`).                                                                                                                                                                                                 |
+|                     | - **T1.5**: Add RAG workflow (retrieve + generate).                                                                                                                                                                                                 |
+| **Frontend**       Keep original 
+                                                                                                                                                                                           |
+| **Vector DB**       | - **T3.1**: Initialize LanceDB table with note chunks.                                                                                                                                                                                              |
+|                     | - **T3.2**: Implement `POST /api/v1/embeddings` endpoint.                                                                                                                                                                                            |
+|                     | - **T3.3**: Add cosine similarity search (`POST /api/v1/similar`).                                                                                                                                                                              |
+| **Deployment**      | - **T4.1**: Dockerize FastAPI + Gradio (multi-stage).                                                                                                                                                                                              |
+|                     | - **T4.2**: Configure Hugging Face Space secrets (`BLABLADOR_API_KEY`).                                                                                                                                                                           |
+|                     | - **T4.3**: Set up NGINX reverse proxy (`7860` → external URL).                                                                                                                                                                                |
+|                     | - **T4.4**: Test API gateway (`/api/v1/*` forwarding).                                                                                                                                                                                           |
+
+---
+#### **4.3. Security & Integration Protocols**
+| **Component**       | **Protocol**                                                                                                                                                                                                                                                                 |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Backend**         | - **API Key**: Fetch `BLABLADOR_API_KEY` from HF Space secrets.                                                                                                                                                                                     |
+|                     | - **Input Validation**: Sanitize markdown/frontmatter to prevent injection.                                                                                                                                                                       |
+|                     | - **Rate Limiting**: Limit LLM API calls (e.g., 5/minute).                                                                                                                                                                                      |
+| **Frontend**        | - **CORS**: Restrict API calls to `harvesthealth-magnetic-ui.hf.space`.                                                                                                                                                                           |
+|                     | - **Sandboxing**: Local models only; no remote execution.                                                                                                                                                                                            |
+| **Deployment**      | - **HTTPS**: Enforce via Hugging Face Space (automatic).                                                                                                                                                                                       |
+|                     | - **Authentication**: HF Space JWT (if private space).                                                                                                                                                                                                  |
+
+**Integration Notes:**
+- **BLABLADOR API**: Full compatibility with OpenAI’s `/v1/chat/completions` schema.
+- **LanceDB**: Use official Python client; no code mirroring needed.
+- **Gradio/FastAPI**: Gradio will proxy to FastAPI for `/api/v1/*` routes.
+
+---
+
+### **4.4. Tests per Component**
+| **Component**       | **Test Description**                                                                                                                                                                                                                                                                 | **Success Criteria**                                                                                                                                                                                                 |
+|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Backend**         | - **T1.1**: Send `POST /api/v1/chat/completions` with `BLABLADOR_API_KEY`.                                                                                                                                                                           | Returns LLM response in OpenAI-compatible JSON.                                                                                                                                                                         |
+|                     | - **T1.2**: Verify `.env` loads `BLABLADOR_API_KEY`.                                                                                                                                                                                             | `KeyError` raised if missing.                                                                                                                                                                                              |
+|                     | - **T1.3**: Insert/Retrieve embeddings via LanceDB.                                                                                                                                                                                                        | Embeddings stored/retrieved with `cosine_similarity > 0.85`.                                                                                                                                                         |
+| **Frontend**        | - **T2.1**: Render markdown with Gradio.                                                                                                                                                                                                                  | Displays syntax

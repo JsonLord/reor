@@ -1,0 +1,73 @@
+### **Adapted Project Description: Reor for Hugging Face Spaces**
+
+**Vision**
+Reor is being adapted into a **Hugging Face Spaces-hosted AI knowledge management system**, leveraging an **OpenAI-compatible LLM endpoint** (`https://api.helmholtz-blablador.fz-juelich.de/v1`) while maintaining **local-first privacy** and **semantic note-linking** capabilities. The core hypothesis remains: *AI tools for thought should integrate seamlessly with external LLM APIs while preserving local data control*.
+
+---
+
+### **Concrete Goals**
+1. **LLM Integration & Compatibility**
+   - Replace or augment local Ollama/Transformers.js models with the **BLABLADOR API** (`model: alias-large`), accessed via `BLABLADOR_API_KEY` (fetched from Hugging Face Space environment variables).
+   - Support **OpenAI-compatible endpoints** (e.g., `/v1/chat/completions`) for RAG workflows.
+
+2. **Backend API Refinement**
+   - **Expose core APIs externally** via Hugging Face Space URL (`https://harvesthealth-magnetic-ui.hf.space`), ensuring:
+     - CRUD operations for notes (markdown + frontmatter).
+     - Vector embeddings (LanceDB) and semantic retrieval.
+     - LLM-powered Q&A with context-aware responses.
+   - **Port forwarding**: Map external traffic to Gradio’s default port (`7860`).
+
+3. **Frontend Adaptations**
+   - Retain the **Obsidian-like markdown editor** and **related notes sidebar** (vector similarity-driven).
+   - Ensure UI responsiveness for Hugging Face Spaces constraints (e.g., cold starts, resource limits).
+
+4. **Deployment Strategy**
+   - **Dockerize** the app with:
+     - FastAPI/Flask backend for API routing.
+     - Gradio frontend for UI (port `7860`).
+     - NGINX reverse proxy to handle external requests.
+   - Configure **Hugging Face Space secrets** for `BLABLADOR_API_KEY`.
+   - Implement **API gateway** for external management (e.g., `/api/v1/notes`, `/api/v1/qa`).
+
+---
+
+### **Future Use Cases**
+| **Use Case**               | **Implementation Focus**                                                                 |
+|----------------------------|------------------------------------------------------------------------------------------|
+| **Healthcare Knowledge Hub** | Semantic search across medical notes with RAG-powered Q&A (e.g., "Explain this study’s methodology"). |
+| **Research Collaboration**  | Shared note repositories with LLM-assisted synthesis (BLABLADOR API for domain-specific models). |
+| **API-Driven Workflows**    | Integrate with external tools via OpenAI-compatible endpoints (e.g., chatbots, automation). |
+| **Cold-Start Optimization** | Pre-load lightweight vector embeddings to mitigate latency in Hugging Face Spaces.       |
+
+---
+
+### **Potential Integrations**
+1. **External APIs**
+   - **BLABLADOR API**: Default LLM endpoint for domain-specific inference.
+   - **OpenAI-Compatible Services**: Fallback to Ollama/Oobabooga if BLABLADOR is unavailable.
+
+2. **Data Storage**
+   - **LanceDB**: Local vector database for embeddings (no cloud dependency).
+   - **Hugging Face Hub**: Optional sync for collaborative workflows (future feature).
+
+3. **Frontend Extensions**
+   - **Gradio Components**: Custom UI elements for note linking/sidebar.
+   - **React (Optional)**: For complex interactions if Gradio’s limits are hit.
+
+4. **Security & Compliance**
+   - **Environment-Based API Keys**: `BLABLADOR_API_KEY` restricted to Space secrets.
+   - **Rate Limiting**: Prevent abuse of LLM endpoints.
+   - **CORS Policies**: Restrict external API calls to trusted domains.
+
+---
+### **Key Adaptations from Original Reor**
+| **Original Feature**               | **Adaptation for Hugging Face Spaces**                                                                 |
+|------------------------------------|------------------------------------------------------------------------------------------------------|
+| Local Ollama/Transformers.js models | **BLABLADOR API endpoint** with `BLABLADOR_API_KEY` (via environment variables).                   |
+| Self-hosted vector DB              | **LanceDB** (local) + potential future cloud sync options.                                          |
+| Desktop app                        | current front end
+| Manual note imports                | **API-driven note CRUD** (e.g., `POST /api/v1/notes`) for programmatic ingestion.                 |
+| Obsidian-like editor              | all functionalities of reor in tact
+
+---
+**Note**: The adaptation prioritizes **AI-driven features** (RAG, Q&A) while ensuring the app remains **privacy-preserving** (no cloud storage) and **API-exposable** for external workflows.

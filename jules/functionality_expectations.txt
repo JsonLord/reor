@@ -1,0 +1,50 @@
+```json
+{
+  "functionality_expectations": [
+    {
+      "feature": "Private Knowledge Management",
+      "description": "All notes/data stored locally (LanceDB). No cloud dependency."
+    },
+    {
+      "feature": "Semantic Search",
+      "description": "Retrieve notes via vector similarity (cosine similarity)."
+    },
+    {
+      "feature": "LLM Q&A",
+      "description": "Answer questions using retrieved context (RAG). Supports BLABLADOR API."
+    },
+    {
+      "feature": "OpenAI-Compatible API",
+      "description": "Backend exposes `/v1/chat/completions` endpoint for LLM calls."
+    },
+    {
+      "feature": "Gradio UI",
+      "description": "Obsidian-like editor with related notes sidebar."
+    },
+    {
+      "feature": "Automatic Note Linking",
+      "description": "Connect related notes based on vector similarity (AI-powered)."
+    },
+    {
+      "feature": "Markdown Editor",
+      "description": "Supports markdown with frontmatter (Obsidian-like syntax)."
+    },
+    {
+      "feature": "Local LLM Integration",
+      "description": "Interact with Ollama or OpenAI-compatible APIs for LLM generation."
+    },
+    {
+      "feature": "Retrieval-Augmented Generation (RAG)",
+      "description": "Generate answers by combining retrieved notes with LLM context."
+    },
+    {
+      "feature": "Cross-Referenced Thinking",
+      "description": "Toggle sidebar to reveal contextually related notes."
+    },
+    {
+      "feature": "Directory-Based Data Storage",
+      "description": "Notes stored as markdown files in a user-defined filesystem directory."
+    }
+  ]
+}
+```

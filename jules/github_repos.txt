@@ -1,0 +1,4 @@
+Here are the GitHub repositories mentioned in the original `README`:
+1. **[Ollama](https://github.com/ollama/ollama)**
+2. **[Transformers.js](https://github.com/xenova/Transformers.js)**
+3. **[LanceDB](https://github.com/lancedb/lancedb)**
