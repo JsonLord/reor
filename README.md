@@ -85,3 +85,28 @@ We are always on the lookout for contributors keen on building the future of kno
 AGPL-3.0 license. See `LICENSE` for details.
 
 _Reor means "to think" in Latin._
+
+## Adaptations & Expansions
+
+This version of Reor has been significantly adapted and expanded from its original form as a local-first desktop application. It is now a web-based application deployed on Hugging Face Spaces, designed to leverage powerful external AI models while maintaining the core principles of private and personal knowledge management.
+
+### Key Adaptations
+
+*   **Web-Based Application:** The application has been transformed from an Electron-based desktop app into a web service, accessible through a browser.
+*   **Hugging Face Spaces Deployment:** The entire application is containerized using Docker and deployed on Hugging Face Spaces, making it easily accessible and scalable.
+*   **BLABLADOR LLM Integration:** The local Ollama integration has been replaced with the powerful BLABLADOR LLM, accessed via a secure API. This allows for more advanced language processing capabilities.
+*   **FastAPI Backend:** A robust backend has been implemented using FastAPI, exposing a set of RESTful APIs for core functionalities.
+*   **Gradio Frontend:** A new user interface has been built with Gradio, providing an intuitive and interactive experience for users.
+
+### API Endpoints
+
+The following API endpoints are exposed by the FastAPI backend:
+
+*   `GET /api/health`: Checks the health of the backend service.
+*   `POST /api/embeddings`: Generates embeddings for a given text.
+*   `POST /api/query`: Answers a question based on a provided context, using the BLABLADOR LLM.
+*   `GET /api/search`: Performs a semantic search on the knowledge base.
+
+### How to Use
+
+The application can be accessed through its Hugging Face Space URL. The Gradio interface provides a simple way to interact with the AI assistant, ask questions, and search your notes. The API endpoints can also be used to integrate Reor's functionalities into other applications.
