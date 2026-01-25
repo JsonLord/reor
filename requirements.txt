@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+requests
+python-dotenv
+gradio
+lancedb
+numpy
+py-readability-metrics
+pytest
+sentence-transformers
